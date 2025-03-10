@@ -1,0 +1,27 @@
+using System;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+
+[Serializable]
+public class Lobby
+{
+    public long chatId;
+    public string gameName;
+    public List<PlayerInfo> players;
+    public int remainingTime;
+    public string Id => $"{chatId}_{gameName}";
+    public TimeSpan RemainingTimeSpan => TimeSpan.FromSeconds(remainingTime);
+}
+
+[Serializable]
+public class GameTop
+{
+    public List<PlayerInfo> players;
+}
+
+[Serializable]
+public class PlayerInfo
+{
+    public string userName;
+    public int score;
+}

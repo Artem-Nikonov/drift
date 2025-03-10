@@ -53,6 +53,8 @@ public class DriftSystem : MonoBehaviour
 
     private void UpdateDriftPoints()
     {
+
+        Debug.Log(driftPoints);
         if (isDrifting)
         {
             noDriftTimer = 0f; // Reset the no-drift timer
@@ -200,13 +202,16 @@ public class DriftSystem : MonoBehaviour
         gameplayCanvas.SetActive(false);
         levelManager.FinishRace();
         levelManager.finalScore.text = driftPointsText.text;
+        Debug.Log($"-=-=-=-=-=-=-=-=-=--={driftPoints}");
     }
     
     private void FinishRace()
     {
+        Debug.Log($"=============={driftPoints}");
         gameplayCanvas.SetActive(false);
         levelManager.FinishRace();
         levelManager.finalScore.text = driftPointsText.text;
+        
     }
 }
     

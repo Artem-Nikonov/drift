@@ -1,8 +1,9 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Cinemachine;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Text.Json;
 
 public class LevelManager : MonoBehaviour
 {
@@ -22,9 +23,21 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private GameObject loadingScreen;
     [SerializeField] private GameObject upperMenu;
     public TextMeshProUGUI finalScore;
+    private int score;
     
     [SerializeField] private GameObject claimButton;
     [SerializeField] private GameObject claimedButton;
+
+    private List<PlayerInfo> topPlayers = new();
+    private List<PlayerInfo> lobbyPlayers = new();
+    public static string gameName => "drive";
+
+    public static string LobbyId =>
+#if !UNITY_EDITOR
+         $"{AllGamesServer.Instance.startData?.chatId ?? ""}_{GameManager.gameName}";
+#else
+        "12345_drive";
+#endif
 
     [Header("Car Colors")]
     public List<Color> carColors = new List<Color> { Color.green, Color.yellow, Color.red, Color.blue, new Color(1.0f, 0.5f, 0.0f), Color.magenta }; // Orange & Pink
@@ -142,13 +155,60 @@ public class LevelManager : MonoBehaviour
     {
         results.SetActive(true);
         upperMenu.SetActive(true);
+        results.SetActive(true);
+        upperMenu.SetActive(true);
+        
+        AllGamesServer.Instance.SendLobbyGameResult(LobbyId, 150, AllGamesServer.Instance.startData?.startParam, ()=> Debug.Log("Результат отправлен"));
+        //InitializeLobbyInfo();
+        //InitializeGameInfo();
     }
     
     public void CloseResults()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
-    
+
+    public void InitializeLobbyInfo()
+    {
+        AllGamesServer.Instance.GetLobby(gameName, AllGamesServer.Instance.startData?.chatId, lobby =>
+        {
+            lobbyPlayers = lobby.players;
+            //Debug.Log(timer.ToString());
+            //Timer = lobby.RemainingTimeSpan;
+            //StartCoroutine(TimerUpdater());
+            //InitializeMenuTimer();
+            Debug.Log("test");
+            //Debug.Log(JsonSerializer.Serialize(lobby));
+            string json = JsonUtility.ToJson(lobby);
+            Debug.Log(json);
+
+        },
+        () =>
+        {
+            //playButton.gameObject.SetActive(false);
+            //lobbyInfo.text = "Не удалось получить информацию о лобби";
+            Debug.Log("Не удалось получить информацию о лобби");
+        });
+    }
+
+    public void InitializeGameInfo()
+    {
+        AllGamesServer.Instance.GetTopPlayersInfo(gameName, top =>
+        {
+            topPlayers = top.players;
+            //ShowTopPlayers();
+            string json = JsonUtility.ToJson(top);
+            Debug.Log(json);
+        },
+        () =>
+        {
+            
+            //playButton.gameObject.SetActive(false);
+            //lobbyInfo.text = "Не удалось получить информацию об игре";
+            Debug.Log("Не удалось получить информацию об игре");
+        });
+    }
+
     public void StopQueue()
     {
         loadingScreen.SetActive(false);
