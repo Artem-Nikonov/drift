@@ -3,8 +3,6 @@ using Cinemachine;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Text.Json;
-
 public class LevelManager : MonoBehaviour
 {
     [Header("Level Prefabs")]
@@ -23,20 +21,19 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private GameObject loadingScreen;
     [SerializeField] private GameObject upperMenu;
     public TextMeshProUGUI finalScore;
-    private int score;
     
     [SerializeField] private GameObject claimButton;
     [SerializeField] private GameObject claimedButton;
 
     private List<PlayerInfo> topPlayers = new();
     private List<PlayerInfo> lobbyPlayers = new();
-    public static string gameName => "drive";
+    public static string gameName => "drift-infinite";
 
     public static string LobbyId =>
 #if !UNITY_EDITOR
-         $"{AllGamesServer.Instance.startData?.chatId ?? ""}_{GameManager.gameName}";
+         $"{AllGamesServer.Instance.startData?.chatId ?? ""}_{gameName}";
 #else
-        "12345_drive";
+        "12345_drift-infinite";
 #endif
 
     [Header("Car Colors")]
@@ -47,6 +44,7 @@ public class LevelManager : MonoBehaviour
     private void Awake()
     {
         Application.targetFrameRate = 60;
+        InitializeLobbyInfo();
     }
 
 

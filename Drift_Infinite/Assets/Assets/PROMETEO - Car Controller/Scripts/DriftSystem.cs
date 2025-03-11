@@ -54,7 +54,6 @@ public class DriftSystem : MonoBehaviour
     private void UpdateDriftPoints()
     {
 
-        Debug.Log(driftPoints);
         if (isDrifting)
         {
             noDriftTimer = 0f; // Reset the no-drift timer
@@ -201,15 +200,15 @@ public class DriftSystem : MonoBehaviour
         Instantiate(driftEffectPrefab, transform.position, Quaternion.identity);
         gameplayCanvas.SetActive(false);
         levelManager.FinishRace();
+        AllGamesServer.Instance.SendLobbyGameResult(LevelManager.LobbyId, driftPoints, AllGamesServer.Instance.startData?.startParam, () => Debug.Log("error"));
         levelManager.finalScore.text = driftPointsText.text;
-        Debug.Log($"-=-=-=-=-=-=-=-=-=--={driftPoints}");
     }
     
     private void FinishRace()
     {
-        Debug.Log($"=============={driftPoints}");
         gameplayCanvas.SetActive(false);
         levelManager.FinishRace();
+        AllGamesServer.Instance.SendLobbyGameResult(LevelManager.LobbyId, driftPoints, AllGamesServer.Instance.startData?.startParam, () => Debug.Log("error"));
         levelManager.finalScore.text = driftPointsText.text;
         
     }

@@ -13,19 +13,14 @@ public class AllGamesServer : MonoBehaviour
 #if UNITY_EDITOR
     public bool connectOnMain = false;
 #endif
-    public ReceiveData startData { get; private set; } = new ReceiveData
-    {
-        initData = "",
-        startParam = "test",
-        chatId = "12345"
-    };
+    public ReceiveData startData { get; private set; }
 
 
     public string connectionString =>
 #if UNITY_EDITOR
-        connectOnMain ? "allgames.1064953-ci72340.tmweb.ru" : "localhost:7055";
+        connectOnMain ? "allgames.zorya.tech" : "localhost:7055";
 #else
-        "allgames.1064953-ci72340.tmweb.ru";
+        "allgames.zorya.tech";
 #endif
 
     private string cookie;
@@ -101,7 +96,6 @@ public class AllGamesServer : MonoBehaviour
 
         yield return request.SendWebRequest();
 
-        Debug.Log($"https://{connectionString}/{url}");
         if (request.result == UnityWebRequest.Result.ConnectionError ||
         request.result == UnityWebRequest.Result.ProtocolError)
         {
