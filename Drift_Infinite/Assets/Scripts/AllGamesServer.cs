@@ -15,7 +15,6 @@ public class AllGamesServer : MonoBehaviour
 #endif
     public ReceiveData startData { get; private set; }
 
-
     public string connectionString =>
 #if UNITY_EDITOR
         connectOnMain ? "allgames.zorya.tech" : "localhost:7055";
