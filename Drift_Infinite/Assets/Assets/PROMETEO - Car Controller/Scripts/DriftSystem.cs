@@ -39,7 +39,7 @@ public class DriftSystem : MonoBehaviour
             driftProgressSlider.value = 0f;
         }
 
-        levelManager = FindAnyObjectByType<LevelManager>();
+        levelManager = LevelManager.Instance;
         isFinished = false;
     }
 
@@ -198,19 +198,23 @@ public class DriftSystem : MonoBehaviour
     private void DeathActivate()
     {
         Instantiate(driftEffectPrefab, transform.position, Quaternion.identity);
-        gameplayCanvas.SetActive(false);
-        levelManager.FinishRace();
-        AllGamesServer.Instance.SendLobbyGameResult(LevelManager.LobbyId, driftPoints, AllGamesServer.Instance.startData?.startParam, () => Debug.Log("error"));
-        levelManager.finalScore.text = driftPointsText.text;
+        FinishGame();
+        
     }
-    
-    private void FinishRace()
+
+    private void FinishRace() => FinishGame();
+
+    private void FinishGame()
     {
         gameplayCanvas.SetActive(false);
-        levelManager.FinishRace();
-        AllGamesServer.Instance.SendLobbyGameResult(LevelManager.LobbyId, driftPoints, AllGamesServer.Instance.startData?.startParam, () => Debug.Log("error"));
         levelManager.finalScore.text = driftPointsText.text;
-        
+        if (driftPoints > levelManager.maxScore)
+        {
+            levelManager.maxScore = driftPoints;
+            AllGamesServer.Instance.SendLobbyGameResult(LevelManager.LobbyId, driftPoints, AllGamesServer.Instance.startData?.startParam, levelManager.FinishRace);
+            return;
+        }
+        levelManager.FinishRace();
     }
 }
     

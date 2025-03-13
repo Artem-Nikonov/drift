@@ -13,7 +13,18 @@ public class AllGamesServer : MonoBehaviour
 #if UNITY_EDITOR
     public bool connectOnMain = false;
 #endif
+
+#if UNITY_EDITOR
+    public ReceiveData startData { get; private set; } = new ReceiveData
+    {
+        chatId = "12345",
+        initData = "_",
+        startParam = "test"
+    };
+#else
     public ReceiveData startData { get; private set; }
+#endif
+
 
     public string connectionString =>
 #if UNITY_EDITOR
@@ -34,6 +45,15 @@ public class AllGamesServer : MonoBehaviour
         }
 
         Destroy(gameObject);
+
+
+    }
+
+    public void Start()
+    {
+#if UNITY_EDITOR
+SceneManager.LoadScene("Gameplay");
+#endif
     }
 
     public void Auth(string data)
@@ -44,6 +64,7 @@ public class AllGamesServer : MonoBehaviour
         {
             SceneManager.LoadScene(1);
         }));
+        SceneManager.LoadScene(1);
     }
 
     private IEnumerator SendGetRequest<T>(string url, Action<T> onLoad, Action onError)

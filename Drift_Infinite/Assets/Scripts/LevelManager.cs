@@ -1,8 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using Cinemachine;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 public class LevelManager : MonoBehaviour
 {
     [Header("Level Prefabs")]
@@ -24,9 +27,27 @@ public class LevelManager : MonoBehaviour
     
     [SerializeField] private GameObject claimButton;
     [SerializeField] private GameObject claimedButton;
+    [SerializeField] private Button startButton;
+
+    [SerializeField] private Image timerMenuSlider; 
+    [SerializeField] private TextMeshProUGUI timerText;
+    public float gameTimeInSeconds => 1800f;
+    private TimeSpan timer;
+    private TimeSpan Timer
+    {
+        set
+        {
+            timerText.text = value.ToString();
+            timer = value;
+        }
+        get => timer;
+    }
 
     private List<PlayerInfo> topPlayers = new();
     private List<PlayerInfo> lobbyPlayers = new();
+    public int maxScore = 0; 
+
+    public static LevelManager Instance { get; private set; }
     public static string gameName => "drift-infinite";
 
     public static string LobbyId =>
@@ -43,10 +64,14 @@ public class LevelManager : MonoBehaviour
 
     private void Awake()
     {
+        Instance ??= this;
         Application.targetFrameRate = 60;
-        InitializeLobbyInfo();
     }
 
+    private void Start()
+    {
+        InitializeLobbyInfo();
+    }
 
     public void SelectRandomLevel()
     {
@@ -57,7 +82,7 @@ public class LevelManager : MonoBehaviour
         }
 
         // Select a random level but do not activate it yet
-        selectedLevelIndex = Random.Range(0, levelPrefabs.Count);
+        selectedLevelIndex = UnityEngine.Random.Range(0, levelPrefabs.Count);
 
         // Set the correct animation bool based on selected level
         if (animator != null)
@@ -129,7 +154,7 @@ public class LevelManager : MonoBehaviour
         Renderer carRenderer = spawnedCar.GetComponentInChildren<Renderer>(); // Assuming the car has a Renderer
         if (carRenderer != null)
         {
-            carRenderer.material.color = carColors[Random.Range(0, carColors.Count)];
+            carRenderer.material.color = carColors[UnityEngine.Random.Range(0, carColors.Count)];
         }
         else
         {
@@ -151,14 +176,7 @@ public class LevelManager : MonoBehaviour
 
     public void FinishRace()
     {
-        results.SetActive(true);
-        upperMenu.SetActive(true);
-        results.SetActive(true);
-        upperMenu.SetActive(true);
-        
-        AllGamesServer.Instance.SendLobbyGameResult(LobbyId, 150, AllGamesServer.Instance.startData?.startParam, ()=> Debug.Log("Результат отправлен"));
-        //InitializeLobbyInfo();
-        //InitializeGameInfo();
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
     
     public void CloseResults()
@@ -172,13 +190,13 @@ public class LevelManager : MonoBehaviour
         {
             lobbyPlayers = lobby.players;
             //Debug.Log(timer.ToString());
-            //Timer = lobby.RemainingTimeSpan;
-            //StartCoroutine(TimerUpdater());
+            Timer = lobby.RemainingTimeSpan;
+            StartCoroutine(TimerUpdater());
             //InitializeMenuTimer();
-            Debug.Log("test");
             //Debug.Log(JsonSerializer.Serialize(lobby));
             string json = JsonUtility.ToJson(lobby);
             Debug.Log(json);
+            RaitingController.Instance.ShowLobbyPlayers(new List<PlayerInfo> { lobbyPlayers[0] , lobbyPlayers[0] , lobbyPlayers[0], lobbyPlayers[0], lobbyPlayers[0], lobbyPlayers[0], lobbyPlayers[0] , lobbyPlayers[0], lobbyPlayers[0] });
 
         },
         () =>
@@ -226,4 +244,26 @@ public class LevelManager : MonoBehaviour
         claimButton.SetActive(false);
         claimedButton.SetActive(true);
     }
+
+    private IEnumerator TimerUpdater()
+    {
+        while (Timer > TimeSpan.Zero)
+        {
+            Timer = timer.Add(TimeSpan.FromSeconds(-1));
+
+            if (timerMenuSlider != null)
+            {
+                timerMenuSlider.fillAmount = (float)timer.TotalSeconds/gameTimeInSeconds;
+            }
+
+            if (Timer <= TimeSpan.FromMinutes(2) && startButton.IsActive())
+            {
+                startButton.gameObject.SetActive(false);
+            }
+
+            yield return new WaitForSeconds(1);
+        }
+    }
+
+
 }
