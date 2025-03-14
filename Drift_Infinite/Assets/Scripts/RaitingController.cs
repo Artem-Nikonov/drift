@@ -10,45 +10,24 @@ public class RaitingController : MonoBehaviour
     [Header("Tabs")]
     [SerializeField] private Transform tabContent;
     [SerializeField] private PlayerNote tabPrefab;
-    public static RaitingController Instance;
     // Start is called before the first frame update
 
-    public void Awake()
-    {
-        Instance = this;
-    }
 
     public void ShowLobbyPlayers(List<PlayerInfo> lobbyPlayers)
     {
         if (lobbyPlayers == null) return;
 
         ClearTop();
+
         for (int i = 0; i < lobbyPlayers.Count; i++)
         {
             var player = lobbyPlayers[i];
             var newTab = Instantiate(tabPrefab, tabContent);
             var place = $"{i + 1}{GetPlacePrefix(i + 1)}";
-            var panel = Panels[1];
-            var design = Design[3];
 
-            if (i == 0)
-            {
-                panel = Panels[0];
-                design = Design[0];
-            }
-            else if (i == 1)
-            {
-                design = Design[1];
-            }
-            else if (i == 2)
-            {
-                design = Design[2];
-            }
-            else if (i == lobbyPlayers.Count)
-            {
-                panel = Panels[2];
-            }
-
+            Debug.Log($"{i}   {lobbyPlayers.Count - 1}");
+            var panel = i == 0 ? Panels[0] : i == lobbyPlayers.Count - 1 ? Panels[2] : Panels[1];
+            var design = i < 3 ? Design[i] : Design[3];
 
             newTab.InitNote(player.userName, player.score.ToString(), place, panel, design);
         }
@@ -56,11 +35,11 @@ public class RaitingController : MonoBehaviour
 
     private void ClearTop()
     {
-        Debug.Log(tabContent.transform == null);
-        //foreach (Transform tab in tabContent.transform)
-        //    Destroy(tab.gameObject);
+        foreach (Transform tab in tabContent)
+        {
+            Destroy(tab.gameObject);
+        }
     }
-
 
     private string GetPlacePrefix(int place) => place switch
     {

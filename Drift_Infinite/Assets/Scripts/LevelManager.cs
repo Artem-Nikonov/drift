@@ -31,6 +31,7 @@ public class LevelManager : MonoBehaviour
 
     [SerializeField] private Image timerMenuSlider; 
     [SerializeField] private TextMeshProUGUI timerText;
+    [SerializeField] private RaitingController raitingController;
     public float gameTimeInSeconds => 1800f;
     private TimeSpan timer;
     private TimeSpan Timer
@@ -196,7 +197,7 @@ public class LevelManager : MonoBehaviour
             //Debug.Log(JsonSerializer.Serialize(lobby));
             string json = JsonUtility.ToJson(lobby);
             Debug.Log(json);
-            RaitingController.Instance.ShowLobbyPlayers(new List<PlayerInfo> { lobbyPlayers[0] , lobbyPlayers[0] , lobbyPlayers[0], lobbyPlayers[0], lobbyPlayers[0], lobbyPlayers[0], lobbyPlayers[0] , lobbyPlayers[0], lobbyPlayers[0] });
+            raitingController.ShowLobbyPlayers(lobbyPlayers);
 
         },
         () =>
