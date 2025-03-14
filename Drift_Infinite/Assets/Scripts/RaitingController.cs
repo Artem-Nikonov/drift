@@ -10,7 +10,6 @@ public class RaitingController : MonoBehaviour
     [Header("Tabs")]
     [SerializeField] private Transform tabContent;
     [SerializeField] private PlayerNote tabPrefab;
-    // Start is called before the first frame update
 
 
     public void ShowLobbyPlayers(List<PlayerInfo> lobbyPlayers)
@@ -25,7 +24,6 @@ public class RaitingController : MonoBehaviour
             var newTab = Instantiate(tabPrefab, tabContent);
             var place = $"{i + 1}{GetPlacePrefix(i + 1)}";
 
-            Debug.Log($"{i}   {lobbyPlayers.Count - 1}");
             var panel = i == 0 ? Panels[0] : i == lobbyPlayers.Count - 1 ? Panels[2] : Panels[1];
             var design = i < 3 ? Design[i] : Design[3];
 

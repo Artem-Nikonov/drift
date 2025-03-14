@@ -32,6 +32,10 @@ public class DriftSystem : MonoBehaviour
     
     [SerializeField] private bool isFinished = false;
 
+    private int maxPointsPerDrift => 2000;
+    private int currentDriftPoints = 0;
+    private int maxDriftMultiplier = 10;
+
     private void Start()
     {
         if (driftProgressSlider != null)
@@ -51,49 +55,52 @@ public class DriftSystem : MonoBehaviour
         }
     }
 
+
     private void UpdateDriftPoints()
     {
-
         if (isDrifting)
         {
-            noDriftTimer = 0f; // Reset the no-drift timer
+            noDriftTimer = 0f; // Сбрасываем таймер отсутствия дрифта
 
+            if (currentDriftPoints < maxPointsPerDrift)
+            {
+                // Вычисляем очки на основе времени
+                float pointsToAdd = driftMultiplier * pointsMultiplier * Time.deltaTime * 10f;
+                if (isInDriftBoostZone)
+                {
+                    pointsToAdd *= 2; // Удваиваем очки в зоне усиления дрифта
+                }
+
+                driftPoints += Mathf.RoundToInt(pointsToAdd);
+                currentDriftPoints += Mathf.RoundToInt(pointsToAdd);
+                UpdateDriftPointsUI();
+            }
+
+            // Продолжаем обновлять таймер дрифта и множитель, даже если очки больше не начисляются
             driftTimer += Time.deltaTime;
 
-            // Calculate drift points based on time
-            float pointsToAdd = driftMultiplier * pointsMultiplier * Time.deltaTime * 10f; // Scale by time
-            if (isInDriftBoostZone)
-            {
-                pointsToAdd *= 2; // Double points in the drift boost zone
-            }
+            float requiredDriftTime = 3f + (driftMultiplier - 3); // Чем выше множитель, тем больше времени требуется
 
-            driftPoints += Mathf.RoundToInt(pointsToAdd); // Convert to integer for accuracy
-            UpdateDriftPointsUI();
-
-            // Dynamically increasing time to gain multipliers
-            float requiredDriftTime = 3f + (driftMultiplier - 3); // Takes longer for higher multipliers
-
-            // Update the slider fill amount
+            // Обновляем заполнение слайдера
             if (driftProgressSlider != null)
             {
-                driftProgressSlider.value = driftTimer / requiredDriftTime; // Normalize between 0-1
+                driftProgressSlider.value = driftTimer / requiredDriftTime;
             }
 
-            if (driftTimer >= requiredDriftTime)
+            // Продолжаем увеличивать множитель, пока не достигнут максимум
+            if (driftTimer >= requiredDriftTime && driftMultiplier < maxDriftMultiplier)
             {
                 driftMultiplier++;
-                Instantiate(driftEffectPrefab, transform.position, Quaternion.identity); // Spawn effect
+                Instantiate(driftEffectPrefab, transform.position, Quaternion.identity);
                 explosion.TriggerExplosion();
-                driftTimer = 0f; // Reset drift timer
+                driftTimer = 0f;
 
                 if (driftProgressSlider != null)
                 {
-                    driftProgressSlider.value = 0f; // Reset slider
+                    driftProgressSlider.value = 0f;
                 }
 
                 UpdateDriftMultiplierUI();
-
-                // Adjust car settings dynamically
                 carController.MaxMotorTorque += 100;
                 carController.CarConfig.MaxRPM += 500;
                 carController.CarConfig.MinRPM += 50;
@@ -103,19 +110,21 @@ public class DriftSystem : MonoBehaviour
         }
         else
         {
-            driftTimer = 0f; // Reset drift timer if not drifting
+            // Если дрифт прекратился, сбрасываем таймеры и текущие очки за дрифт
+            driftTimer = 0f;
+            currentDriftPoints = 0; // Сбрасываем текущие очки за дрифт
             noDriftTimer += Time.deltaTime;
 
-            // Dynamically decreasing time before losing multiplier
-            float decayTime = Mathf.Max(2f - ((driftMultiplier - 2) * 0.7f), 0.7f); // Takes less time to lose at high multipliers
+            // Динамически уменьшаем время перед потерей множителя
+            float decayTime = Mathf.Max(2f - ((driftMultiplier - 2) * 0.7f), 0.7f); // Чем выше множитель, тем быстрее он уменьшается
 
             if (noDriftTimer >= decayTime && driftMultiplier > 1)
             {
-                driftMultiplier--; // Decrease multiplier
-                noDriftTimer = 0f; // Reset no-drift timer
+                driftMultiplier--; // Уменьшаем множитель
+                noDriftTimer = 0f; // Сбрасываем таймер отсутствия дрифта
                 UpdateDriftMultiplierUI();
 
-                // Adjust car settings dynamically
+                // Динамически настраиваем параметры машины
                 carController.MaxMotorTorque -= 100;
                 carController.CarConfig.MaxRPM -= 500;
                 carController.CarConfig.MinRPM -= 50;
@@ -125,10 +134,89 @@ public class DriftSystem : MonoBehaviour
 
             if (driftProgressSlider != null)
             {
-                driftProgressSlider.value = 0f; // Reset slider when not drifting
+                driftProgressSlider.value = 0f; // Сбрасываем слайдер, если дрифта нет
             }
         }
     }
+
+    //private void UpdateDriftPoints()
+    //{
+
+    //    if (isDrifting)
+    //    {
+    //        noDriftTimer = 0f; // Reset the no-drift timer
+
+    //        driftTimer += Time.deltaTime;
+
+    //        // Calculate drift points based on time
+    //        float pointsToAdd = driftMultiplier * pointsMultiplier * Time.deltaTime * 10f; // Scale by time
+    //        if (isInDriftBoostZone)
+    //        {
+    //            pointsToAdd *= 2; // Double points in the drift boost zone
+    //        }
+
+    //        driftPoints += Mathf.RoundToInt(pointsToAdd); // Convert to integer for accuracy
+    //        UpdateDriftPointsUI();
+
+    //        // Dynamically increasing time to gain multipliers
+    //        float requiredDriftTime = 3f + (driftMultiplier - 3); // Takes longer for higher multipliers
+
+    //        // Update the slider fill amount
+    //        if (driftProgressSlider != null)
+    //        {
+    //            driftProgressSlider.value = driftTimer / requiredDriftTime; // Normalize between 0-1
+    //        }
+
+    //        if (driftTimer >= requiredDriftTime)
+    //        {
+    //            driftMultiplier++;
+    //            Instantiate(driftEffectPrefab, transform.position, Quaternion.identity); // Spawn effect
+    //            explosion.TriggerExplosion();
+    //            driftTimer = 0f; // Reset drift timer
+
+    //            if (driftProgressSlider != null)
+    //            {
+    //                driftProgressSlider.value = 0f; // Reset slider
+    //            }
+
+    //            UpdateDriftMultiplierUI();
+
+    //            // Adjust car settings dynamically
+    //            carController.MaxMotorTorque += 100;
+    //            carController.CarConfig.MaxRPM += 500;
+    //            carController.CarConfig.MinRPM += 50;
+    //            carController.CarConfig.RpmToNextGear += 500;
+    //            carController.CarConfig.RpmToPrevGear += 500;
+    //        }
+    //    }
+    //    else
+    //    {
+    //        driftTimer = 0f; // Reset drift timer if not drifting
+    //        noDriftTimer += Time.deltaTime;
+
+    //        // Dynamically decreasing time before losing multiplier
+    //        float decayTime = Mathf.Max(2f - ((driftMultiplier - 2) * 0.7f), 0.7f); // Takes less time to lose at high multipliers
+
+    //        if (noDriftTimer >= decayTime && driftMultiplier > 1)
+    //        {
+    //            driftMultiplier--; // Decrease multiplier
+    //            noDriftTimer = 0f; // Reset no-drift timer
+    //            UpdateDriftMultiplierUI();
+
+    //            // Adjust car settings dynamically
+    //            carController.MaxMotorTorque -= 100;
+    //            carController.CarConfig.MaxRPM -= 500;
+    //            carController.CarConfig.MinRPM -= 50;
+    //            carController.CarConfig.RpmToNextGear -= 500;
+    //            carController.CarConfig.RpmToPrevGear -= 500;
+    //        }
+
+    //        if (driftProgressSlider != null)
+    //        {
+    //            driftProgressSlider.value = 0f; // Reset slider when not drifting
+    //        }
+    //    }
+    //}
 
     private void UpdateDriftPointsUI()
     {

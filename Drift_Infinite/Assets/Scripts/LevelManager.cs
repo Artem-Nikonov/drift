@@ -32,7 +32,7 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private Image timerMenuSlider; 
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private RaitingController raitingController;
-    public float gameTimeInSeconds => 1800f;
+    private float lobbyLifeTineInSeconds = 1800f;
     private TimeSpan timer;
     private TimeSpan Timer
     {
@@ -190,20 +190,14 @@ public class LevelManager : MonoBehaviour
         AllGamesServer.Instance.GetLobby(gameName, AllGamesServer.Instance.startData?.chatId, lobby =>
         {
             lobbyPlayers = lobby.players;
-            //Debug.Log(timer.ToString());
+            lobbyLifeTineInSeconds = lobby.lifeTime;
             Timer = lobby.RemainingTimeSpan;
             StartCoroutine(TimerUpdater());
-            //InitializeMenuTimer();
-            //Debug.Log(JsonSerializer.Serialize(lobby));
-            string json = JsonUtility.ToJson(lobby);
-            Debug.Log(json);
             raitingController.ShowLobbyPlayers(lobbyPlayers);
 
         },
         () =>
         {
-            //playButton.gameObject.SetActive(false);
-            //lobbyInfo.text = "Не удалось получить информацию о лобби";
             Debug.Log("Не удалось получить информацию о лобби");
         });
     }
@@ -254,7 +248,7 @@ public class LevelManager : MonoBehaviour
 
             if (timerMenuSlider != null)
             {
-                timerMenuSlider.fillAmount = (float)timer.TotalSeconds/gameTimeInSeconds;
+                timerMenuSlider.fillAmount = (float)timer.TotalSeconds / lobbyLifeTineInSeconds;
             }
 
             if (Timer <= TimeSpan.FromMinutes(2) && startButton.IsActive())

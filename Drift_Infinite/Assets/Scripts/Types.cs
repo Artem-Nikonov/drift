@@ -9,6 +9,7 @@ public class Lobby
     public string gameName;
     public List<PlayerInfo> players;
     public int remainingTime;
+    public int lifeTime;
     public string Id => $"{chatId}_{gameName}";
     public TimeSpan RemainingTimeSpan => TimeSpan.FromSeconds(remainingTime);
 }
