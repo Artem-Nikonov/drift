@@ -231,8 +231,8 @@ public class CarController : MonoBehaviour, ISendData, IReceiveData
 				
 			}
 		}
-        
-        bool isCurrentlyDrifting = CurrentMaxSlip > 0.3f && SpeedInHour > 10f; 
+
+        bool isCurrentlyDrifting = CurrentMaxSlip > 0.5f && SpeedInHour > 20f && Mathf.Abs(CurrentSteerAngle) > 10f;
 
         // Set drift state
         if (driftSystem != null)
@@ -247,63 +247,55 @@ public class CarController : MonoBehaviour, ISendData, IReceiveData
 	//Angle between forward point and velocity point.
 	public float VelocityAngle { get; private set; }
 
-	/// <summary>
-	/// Update all helpers logic.
-	/// </summary>
-	void UpdateSteerAngleLogic ()
-	{
-		var needHelp = SpeedInHour > MinSpeedForSteerHelp && CarDirection > 0;
-		float targetAngle = 0;
-		VelocityAngle = -Vector3.SignedAngle (RB.velocity, transform.TransformDirection (Vector3.forward), Vector3.up);
+    /// <summary>
+    /// Update all helpers logic.
+    /// </summary>
+    void UpdateSteerAngleLogic()
+    {
+        var needHelp = SpeedInHour > MinSpeedForSteerHelp && CarDirection > 0;
+        float targetAngle = 0;
+        VelocityAngle = -Vector3.SignedAngle(RB.velocity, transform.TransformDirection(Vector3.forward), Vector3.up);
+        if (needHelp)
+        {
+            //Wheel turning helper.
+            targetAngle = Mathf.Clamp(VelocityAngle * HelpSteerPower, -MaxSteerAngle, MaxSteerAngle);
+        }
+        //Wheel turn limitation.
+        targetAngle = Mathf.Clamp(targetAngle + CurrentSteerAngle, -(MaxSteerAngle + 10), MaxSteerAngle + 10);
+        //Front wheel turn.
+        Wheels[0].WheelCollider.steerAngle = targetAngle;
+        Wheels[1].WheelCollider.steerAngle = targetAngle;
+        if (needHelp)
+        {
+            //Angular velocity helper.
+            var absAngle = Mathf.Abs(VelocityAngle);
+            //Get current procent help angle.
+            float currentAngularProcent = absAngle / MaxAngularVelocityHelpAngle;
+            var currAngle = RB.angularVelocity;
+            if (VelocityAngle * CurrentSteerAngle > 0)
+            {
+                //Turn to the side opposite to the angle. To change the angular velocity.
+                var angularVelocityMagnitudeHelp = OppositeAngularVelocityHelpPower * CurrentSteerAngle * Time.fixedDeltaTime * 0.5f;
+                currAngle.y += angularVelocityMagnitudeHelp * currentAngularProcent;
+            }
+            else if (!Mathf.Approximately(CurrentSteerAngle, 0))
+            {
+                //Turn to the side positive to the angle. To change the angular velocity.
+                var angularVelocityMagnitudeHelp = PositiveAngularVelocityHelpPower * CurrentSteerAngle * Time.fixedDeltaTime * 0.5f;
+                currAngle.y += angularVelocityMagnitudeHelp * (1 - currentAngularProcent);
+            }
+            //Clamp and apply of angular velocity.
+            var maxMagnitude = ((AngularVelucityInMaxAngle - AngularVelucityInMinAngle) * currentAngularProcent * 0.5f) + AngularVelucityInMinAngle;
+            currAngle.y = Mathf.Clamp(currAngle.y, -maxMagnitude * 0.8f, maxMagnitude * 0.8f);
+            RB.angularVelocity = currAngle;
+        }
+    }
 
-		if (needHelp)
-		{
-			//Wheel turning helper.
-			targetAngle = Mathf.Clamp (VelocityAngle * HelpSteerPower, -MaxSteerAngle, MaxSteerAngle);
-		}
+    #endregion //Steer help logic
 
-		//Wheel turn limitation.
-		targetAngle = Mathf.Clamp (targetAngle + CurrentSteerAngle, -(MaxSteerAngle + 10), MaxSteerAngle + 10);
+    #region Rpm and torque logic
 
-		//Front wheel turn.
-		Wheels[0].WheelCollider.steerAngle = targetAngle;
-		Wheels[1].WheelCollider.steerAngle = targetAngle;
-
-		if (needHelp)
-		{
-			//Angular velocity helper.
-			var absAngle = Mathf.Abs (VelocityAngle);
-
-			//Get current procent help angle.
-			float currentAngularProcent = absAngle / MaxAngularVelocityHelpAngle;
-
-			var currAngle = RB.angularVelocity;
-
-			if (VelocityAngle * CurrentSteerAngle > 0)
-			{
-				//Turn to the side opposite to the angle. To change the angular velocity.
-				var angularVelocityMagnitudeHelp = OppositeAngularVelocityHelpPower * CurrentSteerAngle * Time.fixedDeltaTime;
-				currAngle.y += angularVelocityMagnitudeHelp * currentAngularProcent;
-			}
-			else if (!Mathf.Approximately (CurrentSteerAngle, 0))
-			{
-				//Turn to the side positive to the angle. To change the angular velocity.
-				var angularVelocityMagnitudeHelp = PositiveAngularVelocityHelpPower * CurrentSteerAngle * Time.fixedDeltaTime;
-				currAngle.y += angularVelocityMagnitudeHelp * (1 - currentAngularProcent);
-			}
-
-			//Clamp and apply of angular velocity.
-			var maxMagnitude = ((AngularVelucityInMaxAngle - AngularVelucityInMinAngle) * currentAngularProcent) + AngularVelucityInMinAngle;
-			currAngle.y = Mathf.Clamp (currAngle.y, -maxMagnitude, maxMagnitude);
-			RB.angularVelocity = currAngle;
-		}
-	}
-
-	#endregion //Steer help logic
-
-	#region Rpm and torque logic
-
-	public int CurrentGear { get; private set; }
+    public int CurrentGear { get; private set; }
 	public int CurrentGearIndex { get { return CurrentGear + 1; } }
 	public float EngineRPM { get; private set; }
 	public float GetMaxRPM { get { return MaxRPM; } }
@@ -511,7 +503,7 @@ public class CarController : MonoBehaviour, ISendData, IReceiveData
 public class CarConfig
 {
 	[Header("Steer Settings")]
-	public float MaxSteerAngle = 25;
+	public float MaxSteerAngle = 20;
 
 	[Header("Engine and power settings")]
 	public DriveType DriveType = DriveType.RWD;				//Drive type AWD, FWD, RWD. With the current parameters of the car only RWD works well. TODO Add rally and offroad regime.
@@ -538,16 +530,16 @@ public class CarConfig
 	[Header("Helper settings")]								//This settings block in the full version is stored in the regime settings.
 
 	public bool EnableSteerAngleMultiplier = true;
-	public float MinSteerAngleMultiplier = 0.05f;			//Min steer angle multiplayer to limit understeer at high speeds.
+	public float MinSteerAngleMultiplier = 0.2f;			//Min steer angle multiplayer to limit understeer at high speeds.
 	public float MaxSteerAngleMultiplier = 1f;			//Max steer angle multiplayer to limit understeer at high speeds.
-	public float MaxSpeedForMinAngleMultiplier = 250;		//The maximum speed at which there will be a minimum steering angle multiplier.
+	public float MaxSpeedForMinAngleMultiplier = 200;		//The maximum speed at which there will be a minimum steering angle multiplier.
 	[Space(10)]
 
 	public float SteerAngleChangeSpeed;                     //Wheel turn speed.
 	public float MinSpeedForSteerHelp;                      //Min speed at which helpers are enabled.
-	[Range(0f, 1f)] public float HelpSteerPower;            //The power of turning the wheels in the direction of the drift.
-	public float OppositeAngularVelocityHelpPower = 0.1f;	//The power of the helper to turn the rigidbody in the direction of the control turn.
-	public float PositiveAngularVelocityHelpPower = 0.1f;	//The power of the helper to positive turn the rigidbody in the direction of the control turn.
+	[Range(0f, 1f)] public float HelpSteerPower = 0.5f;            //The power of turning the wheels in the direction of the drift.
+	public float OppositeAngularVelocityHelpPower = 0.05f;	//The power of the helper to turn the rigidbody in the direction of the control turn.
+	public float PositiveAngularVelocityHelpPower = 0.05f;	//The power of the helper to positive turn the rigidbody in the direction of the control turn.
 	public float MaxAngularVelocityHelpAngle;               //The angle at which the assistant works 100%.
 	public float AngularVelucityInMaxAngle;                 //Min angular velucity, reached at max drift angles.
 	public float AngularVelucityInMinAngle;                 //Max angular velucity, reached at min drift angles.

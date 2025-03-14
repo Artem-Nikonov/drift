@@ -43,7 +43,7 @@ public struct Wheel
 	FXController FXController { get { return FXController.Instance; } }
 	Vector3 HitPoint;
 
-	const int SmoothValuesCount = 3;
+	const int SmoothValuesCount = 50;
 
 	/// <summary>
 	/// Update gameplay logic.
