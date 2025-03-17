@@ -110,6 +110,28 @@ SceneManager.LoadScene("Gameplay");
         onLoad?.Invoke(request);
     }
 
+
+    private IEnumerator SendPostRequest(string url, string body, Action onLoad)
+    {
+        using UnityWebRequest request = new UnityWebRequest($"https://{connectionString}/{url}", "POST");
+        Console.WriteLine(body);
+        request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(body));
+        request.downloadHandler = new DownloadHandlerBuffer();
+
+        request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Accept", "*/*");
+
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.ConnectionError ||
+        request.result == UnityWebRequest.Result.ProtocolError)
+        {
+            Debug.LogError(request.error);
+        }
+
+        onLoad?.Invoke();
+    }
+
     private IEnumerator SendPostRequest(string url, Action onLoad)
     {
         using UnityWebRequest request = UnityWebRequest.PostWwwForm($"https://{connectionString}/{url}", "");
@@ -127,7 +149,16 @@ SceneManager.LoadScene("Gameplay");
 
     public void GetTopPlayersInfo(string gameName, Action<GameTop> onLoad, Action onError) => StartCoroutine(SendGetRequest($"api/v1/Games/topPlayersInfo/{gameName}", onLoad, onError));
     public void GetLobby(string gameName, string chatId, Action<Lobby> onLoad, Action onError) => StartCoroutine(SendGetRequest($"api/v1/Games/lobby?gameName={gameName}&chatId={chatId}", onLoad, onError));
-    public void SendLobbyGameResult(string lobbyId, int score, string messageId, Action onLoad) => StartCoroutine(SendPostRequest($"api/v1/Games/lobbyGameResult/{lobbyId}?score={score}&messageId={messageId}", onLoad));
+    public void SendLobbyGameResult(string lobbyId, int score, string messageId, Action onLoad)
+    {
+        var body = new GameResult
+        {
+            score = score,
+            messageId = messageId,
+            key = EncryptionService.GenerateGameResultKey(LevelManager.LobbyGuid, score)
+        };
+        StartCoroutine(SendPostRequest($"api/v1/Games/lobbyGameResult/{lobbyId}", JsonUtility.ToJson(body), onLoad));
+    }
     public void Auth(Action onLoad) => StartCoroutine(SendPostRequest($"api/v1/Auth", onLoad));
 }
 

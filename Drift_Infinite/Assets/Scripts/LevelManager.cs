@@ -57,6 +57,7 @@ public class LevelManager : MonoBehaviour
 #else
         "12345_drift-infinite";
 #endif
+    public static string LobbyGuid = "";
 
     [Header("Car Colors")]
     public List<Color> carColors = new List<Color> { Color.green, Color.yellow, Color.red, Color.blue, new Color(1.0f, 0.5f, 0.0f), Color.magenta }; // Orange & Pink
@@ -189,6 +190,7 @@ public class LevelManager : MonoBehaviour
     {
         AllGamesServer.Instance.GetLobby(gameName, AllGamesServer.Instance.startData?.chatId, lobby =>
         {
+            LobbyGuid = lobby.guid;
             lobbyPlayers = lobby.players;
             lobbyLifeTineInSeconds = lobby.lifeTime;
             Timer = lobby.RemainingTimeSpan;
