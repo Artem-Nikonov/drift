@@ -249,6 +249,7 @@ public class DriftSystem : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        Debug.Log("hellooooooooo");
         if (other.CompareTag("DriftBoost"))
         {
             isInDriftBoostZone = true;

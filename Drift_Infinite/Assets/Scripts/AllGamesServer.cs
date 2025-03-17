@@ -134,7 +134,7 @@ SceneManager.LoadScene("Gameplay");
 
     private IEnumerator SendPostRequest(string url, Action onLoad)
     {
-        using UnityWebRequest request = UnityWebRequest.PostWwwForm($"https://{connectionString}/{url}", "");
+        using UnityWebRequest request = UnityWebRequest.Post($"https://{connectionString}/{url}", "");
 
         yield return request.SendWebRequest();
 

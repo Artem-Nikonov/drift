@@ -96,7 +96,9 @@ public class CarController : MonoBehaviour, ISendData, IReceiveData
 
 	private void Awake ()
 	{
-		RB.centerOfMass = COM.localPosition;
+        Rigidbody rb = GetComponent<Rigidbody>();
+        Debug.Log("Center of Mass: " + rb.centerOfMass);
+        RB.centerOfMass = COM.localPosition;
 
 		//Copy wheels in public property
 		Wheels = new Wheel[4] {

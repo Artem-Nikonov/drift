@@ -195,6 +195,8 @@ public class LevelManager : MonoBehaviour
             lobbyLifeTineInSeconds = lobby.lifeTime;
             Timer = lobby.RemainingTimeSpan;
             StartCoroutine(TimerUpdater());
+            string json = JsonUtility.ToJson(lobby);
+            Debug.Log(json);
             raitingController.ShowLobbyPlayers(lobbyPlayers);
 
         },
