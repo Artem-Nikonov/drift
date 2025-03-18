@@ -12,19 +12,19 @@ public class RaitingController : MonoBehaviour
     [SerializeField] private PlayerNote tabPrefab;
 
 
-    public void ShowLobbyPlayers(List<PlayerInfo> lobbyPlayers)
+    public void ShowPlayers(List<PlayerInfo> players)
     {
-        if (lobbyPlayers == null) return;
+        if (players == null) return;
 
         ClearTop();
 
-        for (int i = 0; i < lobbyPlayers.Count; i++)
+        for (int i = 0; i < players.Count; i++)
         {
-            var player = lobbyPlayers[i];
+            var player = players[i];
             var newTab = Instantiate(tabPrefab, tabContent);
             var place = $"{i + 1}{GetPlacePrefix(i + 1)}";
 
-            var panel = i == 0 ? Panels[0] : i == lobbyPlayers.Count - 1 ? Panels[2] : Panels[1];
+            var panel = i == 0 ? Panels[0] : i == players.Count - 1 ? Panels[2] : Panels[1];
             var design = i < 3 ? Design[i] : Design[3];
 
             newTab.InitNote(player.userName, player.score.ToString(), place, panel, design);

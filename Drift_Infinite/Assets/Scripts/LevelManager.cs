@@ -33,6 +33,9 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private RaitingController raitingController;
     private float lobbyLifeTineInSeconds = 1800f;
+
+    [Header("RaitingTable")]
+    [SerializeField] private Button lobbyTopButton;
     private TimeSpan timer;
     private TimeSpan Timer
     {
@@ -73,6 +76,7 @@ public class LevelManager : MonoBehaviour
     private void Start()
     {
         InitializeLobbyInfo();
+        InitializeGameInfo();
     }
 
     public void SelectRandomLevel()
@@ -195,9 +199,7 @@ public class LevelManager : MonoBehaviour
             lobbyLifeTineInSeconds = lobby.lifeTime;
             Timer = lobby.RemainingTimeSpan;
             StartCoroutine(TimerUpdater());
-            string json = JsonUtility.ToJson(lobby);
-            Debug.Log(json);
-            raitingController.ShowLobbyPlayers(lobbyPlayers);
+            raitingController.ShowPlayers(new List<PlayerInfo> { lobbyPlayers[0], lobbyPlayers[0], lobbyPlayers[0], lobbyPlayers[0], lobbyPlayers[0], lobbyPlayers[0], });
 
         },
         () =>
@@ -222,6 +224,16 @@ public class LevelManager : MonoBehaviour
             //lobbyInfo.text = "Не удалось получить информацию об игре";
             Debug.Log("Не удалось получить информацию об игре");
         });
+    }
+
+    public void ShowLobbyTop()
+    {
+        raitingController.ShowPlayers(lobbyPlayers);
+    }
+
+    public void ShowGameTop()
+    {
+        raitingController.ShowPlayers(topPlayers);
     }
 
     public void StopQueue()
