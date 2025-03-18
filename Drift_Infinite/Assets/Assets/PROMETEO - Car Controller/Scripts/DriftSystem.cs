@@ -300,7 +300,7 @@ public class DriftSystem : MonoBehaviour
         if (driftPoints > levelManager.maxScore)
         {
             levelManager.maxScore = driftPoints;
-            AllGamesServer.Instance.SendLobbyGameResult(LevelManager.LobbyId, driftPoints, AllGamesServer.Instance.startData?.startParam, levelManager.FinishRace);
+            AllGamesServer.Instance.SendLobbyGameResult(GameManager.LobbyId, driftPoints, AllGamesServer.Instance.startData?.startParam, levelManager.FinishRace);
             return;
         }
         levelManager.FinishRace();

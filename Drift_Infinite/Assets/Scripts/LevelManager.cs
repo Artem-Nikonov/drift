@@ -29,54 +29,18 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private GameObject claimedButton;
     [SerializeField] private Button startButton;
 
-    [SerializeField] private Image timerMenuSlider; 
-    [SerializeField] private TextMeshProUGUI timerText;
-    [SerializeField] private RaitingController raitingController;
-    private float lobbyLifeTineInSeconds = 1800f;
-
-    [Header("RaitingTable")]
-    [SerializeField] private Button lobbyTopButton;
-    private TimeSpan timer;
-    private TimeSpan Timer
-    {
-        set
-        {
-            timerText.text = value.ToString();
-            timer = value;
-        }
-        get => timer;
-    }
-
-    private List<PlayerInfo> topPlayers = new();
-    private List<PlayerInfo> lobbyPlayers = new();
-    public int maxScore = 0; 
-
     public static LevelManager Instance { get; private set; }
-    public static string gameName => "drift-infinite";
-
-    public static string LobbyId =>
-#if !UNITY_EDITOR
-         $"{AllGamesServer.Instance.startData?.chatId ?? ""}_{gameName}";
-#else
-        "12345_drift-infinite";
-#endif
-    public static string LobbyGuid = "";
 
     [Header("Car Colors")]
     public List<Color> carColors = new List<Color> { Color.green, Color.yellow, Color.red, Color.blue, new Color(1.0f, 0.5f, 0.0f), Color.magenta }; // Orange & Pink
 
     private GameObject spawnedCar; // Reference to the spawned car
+    public int maxScore = 0;
 
     private void Awake()
     {
         Instance ??= this;
         Application.targetFrameRate = 60;
-    }
-
-    private void Start()
-    {
-        InitializeLobbyInfo();
-        InitializeGameInfo();
     }
 
     public void SelectRandomLevel()
@@ -190,51 +154,6 @@ public class LevelManager : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
-    public void InitializeLobbyInfo()
-    {
-        AllGamesServer.Instance.GetLobby(gameName, AllGamesServer.Instance.startData?.chatId, lobby =>
-        {
-            LobbyGuid = lobby.guid;
-            lobbyPlayers = lobby.players;
-            lobbyLifeTineInSeconds = lobby.lifeTime;
-            Timer = lobby.RemainingTimeSpan;
-            StartCoroutine(TimerUpdater());
-            raitingController.ShowPlayers(new List<PlayerInfo> { lobbyPlayers[0], lobbyPlayers[0], lobbyPlayers[0], lobbyPlayers[0], lobbyPlayers[0], lobbyPlayers[0], });
-
-        },
-        () =>
-        {
-            Debug.Log("Не удалось получить информацию о лобби");
-        });
-    }
-
-    public void InitializeGameInfo()
-    {
-        AllGamesServer.Instance.GetTopPlayersInfo(gameName, top =>
-        {
-            topPlayers = top.players;
-            //ShowTopPlayers();
-            string json = JsonUtility.ToJson(top);
-            Debug.Log(json);
-        },
-        () =>
-        {
-            
-            //playButton.gameObject.SetActive(false);
-            //lobbyInfo.text = "Не удалось получить информацию об игре";
-            Debug.Log("Не удалось получить информацию об игре");
-        });
-    }
-
-    public void ShowLobbyTop()
-    {
-        raitingController.ShowPlayers(lobbyPlayers);
-    }
-
-    public void ShowGameTop()
-    {
-        raitingController.ShowPlayers(topPlayers);
-    }
 
     public void StopQueue()
     {
@@ -255,26 +174,5 @@ public class LevelManager : MonoBehaviour
         claimButton.SetActive(false);
         claimedButton.SetActive(true);
     }
-
-    private IEnumerator TimerUpdater()
-    {
-        while (Timer > TimeSpan.Zero)
-        {
-            Timer = timer.Add(TimeSpan.FromSeconds(-1));
-
-            if (timerMenuSlider != null)
-            {
-                timerMenuSlider.fillAmount = (float)timer.TotalSeconds / lobbyLifeTineInSeconds;
-            }
-
-            if (Timer <= TimeSpan.FromMinutes(2) && startButton.IsActive())
-            {
-                startButton.gameObject.SetActive(false);
-            }
-
-            yield return new WaitForSeconds(1);
-        }
-    }
-
 
 }

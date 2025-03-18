@@ -510,7 +510,7 @@ public class CarConfig
 	[Header("Engine and power settings")]
 	public DriveType DriveType = DriveType.RWD;				//Drive type AWD, FWD, RWD. With the current parameters of the car only RWD works well. TODO Add rally and offroad regime.
 	public bool AutomaticGearBox = true;
-	public float MaxMotorTorque = 150;						//Max motor torque engine (Without GearBox multiplier).
+	public float MaxMotorTorque = 350;						//Max motor torque engine (Without GearBox multiplier).
 	public AnimationCurve MotorTorqueFromRpmCurve;			//Curve motor torque (Y(0-1) motor torque, X(0-7) motor RPM).
 	public float MaxRPM = 7000;
 	public float MinRPM = 700;

@@ -64,13 +64,10 @@ SceneManager.LoadScene("Gameplay");
         {
             SceneManager.LoadScene(1);
         }));
-        SceneManager.LoadScene(1);
     }
 
     private IEnumerator SendGetRequest<T>(string url, Action<T> onLoad, Action onError)
     {
-        Debug.Log($"https://{connectionString}/{url}\tCookie: {cookie}");
-
         using UnityWebRequest request = UnityWebRequest.Get($"https://{connectionString}/{url}");
 
         yield return request.SendWebRequest();
@@ -155,7 +152,7 @@ SceneManager.LoadScene("Gameplay");
         {
             score = score,
             messageId = messageId,
-            key = EncryptionService.GenerateGameResultKey(LevelManager.LobbyGuid, score)
+            key = EncryptionService.GenerateGameResultKey(GameManager.LobbyGuid, score)
         };
         StartCoroutine(SendPostRequest($"api/v1/Games/lobbyGameResult/{lobbyId}", JsonUtility.ToJson(body), onLoad));
     }
