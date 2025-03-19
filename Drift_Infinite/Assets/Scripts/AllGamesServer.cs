@@ -69,7 +69,7 @@ SceneManager.LoadScene("Gameplay");
     private IEnumerator SendGetRequest<T>(string url, Action<T> onLoad, Action onError)
     {
         using UnityWebRequest request = UnityWebRequest.Get($"https://{connectionString}/{url}");
-
+        Debug.Log($"https://{connectionString}/{url}");
         yield return request.SendWebRequest();
         if (request.result == UnityWebRequest.Result.ConnectionError ||
         request.result == UnityWebRequest.Result.ProtocolError)

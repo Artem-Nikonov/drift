@@ -124,7 +124,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Design:
-  - {fileID: 21300000, guid: 42d660600187906469f609e9620b7f39, type: 3}
+  - {fileID: 21300000, guid: 352641389be055b49a56cbe66c1b0d9f, type: 3}
   - {fileID: 21300000, guid: 5b3863def6b7d164b84c1c50637f7d6d, type: 3}
   - {fileID: 21300000, guid: 1a28898bb1d572f42bfe5f35dabb0847, type: 3}
   - {fileID: 21300000, guid: 0e7ab97c46239824a86b18fb249a1207, type: 3}
