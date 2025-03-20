@@ -17,6 +17,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Image lobbyTopButtonImage;
     [SerializeField] private Image gameTopButtonImage;
 
+    [SerializeField] public Transform carTransform;
+    [SerializeField] private TextMeshProUGUI signalRTestOutput;
+
+    public static GameManager Instance;
+
     private TimeSpan timer;
     private TimeSpan Timer
     {
@@ -41,6 +46,11 @@ public class GameManager : MonoBehaviour
 #endif
     public static string LobbyGuid = "";
     // Start is called before the first frame update
+
+    public void Awake()
+    {
+        Instance ??= this;
+    }
     void Start()
     {
         InitializeLobbyInfo();
@@ -88,6 +98,9 @@ public class GameManager : MonoBehaviour
         lobbyTopButtonImage.color = Color.white;
         gameTopButtonImage.color = new Color32(255, 255, 255, 100);
         raitingController.ShowPlayers(lobbyPlayers);
+        MultiplayerController.OnEnterLobbyNotify += (msg) => signalRTestOutput.text = msg;
+        MultiplayerController.OnCarTransformReciecved += (carTransform) => signalRTestOutput.text = JsonUtility.ToJson(carTransform);
+        MultiplayerController.enterLobby(LobbyId);
     }
 
     public void ShowGameTop()
@@ -96,6 +109,8 @@ public class GameManager : MonoBehaviour
         lobbyTopButtonImage.color = new Color32(255, 255, 255, 100);
         raitingController.ShowPlayers(topPlayers);
     }
+
+
 
     private IEnumerator TimerUpdater()
     {
@@ -110,6 +125,40 @@ public class GameManager : MonoBehaviour
             }
 
             yield return new WaitForSeconds(1);
+        }
+    }
+
+    public void StartSendCarTransform(Transform carTransform)
+    {
+        this.carTransform = carTransform;
+        StartCoroutine(SendCarTransform());
+
+    }
+
+    private IEnumerator SendCarTransform()
+    {
+        while (carTransform != null)
+        {
+            var data = new CarTransformInfo
+            {
+                connectionId = "777",
+                position = new Vector
+                {
+                    x = carTransform.position.x,
+                    y = carTransform.position.y,
+                    z = carTransform.position.z,
+                },
+                rotation = new Vector
+                {
+                    x = carTransform.rotation.x,
+                    y = carTransform.rotation.y,
+                    z = carTransform.rotation.z,
+                }
+            };
+            //Debug.Log(JsonUtility.ToJson(data));
+            MultiplayerController.sendCarTransform(LobbyId, JsonUtility.ToJson(data));
+
+            yield return new WaitForSeconds(0.2f);
         }
     }
 }

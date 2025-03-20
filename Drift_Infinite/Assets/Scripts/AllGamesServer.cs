@@ -28,9 +28,9 @@ public class AllGamesServer : MonoBehaviour
 
     public string connectionString =>
 #if UNITY_EDITOR
-        connectOnMain ? "allgames.zorya.tech" : "localhost:7055";
+        connectOnMain ? "localhost:7055" : "localhost:7055";
 #else
-        "allgames.zorya.tech";
+        "localhost:7055";
 #endif
 
     private string cookie;
@@ -52,7 +52,7 @@ public class AllGamesServer : MonoBehaviour
     public void Start()
     {
 #if UNITY_EDITOR
-SceneManager.LoadScene("Gameplay");
+//SceneManager.LoadScene("Gameplay");
 #endif
     }
 

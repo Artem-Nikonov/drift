@@ -37,6 +37,7 @@ public class LevelManager : MonoBehaviour
     private GameObject spawnedCar; // Reference to the spawned car
     public int maxScore = 0;
 
+
     private void Awake()
     {
         Instance ??= this;
@@ -119,6 +120,7 @@ public class LevelManager : MonoBehaviour
 
         // Spawn the car
         spawnedCar = Instantiate(levelData.carPrefab, spawnPoint.position, spawnPoint.rotation);
+        GameManager.Instance.StartSendCarTransform(spawnedCar.GetComponent<Transform>());
 
         // Assign a random color
         Renderer carRenderer = spawnedCar.GetComponentInChildren<Renderer>(); // Assuming the car has a Renderer
