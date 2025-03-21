@@ -17,9 +17,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Image lobbyTopButtonImage;
     [SerializeField] private Image gameTopButtonImage;
 
-    [SerializeField] public Transform carTransform;
     [SerializeField] private TextMeshProUGUI signalRTestOutput;
-
     public static GameManager Instance;
 
     private TimeSpan timer;
@@ -40,7 +38,7 @@ public class GameManager : MonoBehaviour
 
     public static string LobbyId =>
 #if !UNITY_EDITOR
-         $"{AllGamesServer.Instance.startData?.chatId ?? ""}_{gameName}";
+         $"{/*AllGamesServer.Instance.startData?.chatId ?? ""*/ "12345"}_{gameName}";
 #else
         "12345_drift-infinite";
 #endif
@@ -49,7 +47,7 @@ public class GameManager : MonoBehaviour
 
     public void Awake()
     {
-        Instance ??= this;
+        Instance = Instance != null ? Instance : this;
     }
     void Start()
     {
@@ -65,7 +63,7 @@ public class GameManager : MonoBehaviour
 
     public void InitializeLobbyInfo()
     {
-        AllGamesServer.Instance.GetLobby(gameName, AllGamesServer.Instance.startData?.chatId, lobby =>
+        AllGamesServer.Instance.GetLobby(gameName, /*AllGamesServer.Instance.startData?.chatId*/ "12345", lobby =>
         {
             LobbyGuid = lobby.guid;
             lobbyPlayers = lobby.players;
@@ -98,8 +96,10 @@ public class GameManager : MonoBehaviour
         lobbyTopButtonImage.color = Color.white;
         gameTopButtonImage.color = new Color32(255, 255, 255, 100);
         raitingController.ShowPlayers(lobbyPlayers);
-        MultiplayerController.OnEnterLobbyNotify += (msg) => signalRTestOutput.text = msg;
-        MultiplayerController.OnCarTransformReciecved += (carTransform) => signalRTestOutput.text = JsonUtility.ToJson(carTransform);
+        MultiplayerController.OnEnterLobbyNotify += (msg) =>
+        {
+            
+        };
         MultiplayerController.enterLobby(LobbyId);
     }
 
@@ -130,32 +130,36 @@ public class GameManager : MonoBehaviour
 
     public void StartSendCarTransform(Transform carTransform)
     {
-        this.carTransform = carTransform;
-        StartCoroutine(SendCarTransform());
+        StartCoroutine(SendCarTransform(carTransform));
 
     }
 
-    private IEnumerator SendCarTransform()
+    public void StopSendCarTransform()
+    {
+        StopAllCoroutines();
+    }
+
+    private IEnumerator SendCarTransform(Transform carTransform)
     {
         while (carTransform != null)
         {
             var data = new CarTransformInfo
             {
                 connectionId = "777",
-                position = new Vector
+                position = new Position
                 {
                     x = carTransform.position.x,
                     y = carTransform.position.y,
                     z = carTransform.position.z,
                 },
-                rotation = new Vector
+                rotation = new Rotation
                 {
                     x = carTransform.rotation.x,
                     y = carTransform.rotation.y,
                     z = carTransform.rotation.z,
+                    w = carTransform.rotation.w
                 }
             };
-            //Debug.Log(JsonUtility.ToJson(data));
             MultiplayerController.sendCarTransform(LobbyId, JsonUtility.ToJson(data));
 
             yield return new WaitForSeconds(0.2f);

@@ -37,6 +37,9 @@ public class LevelManager : MonoBehaviour
     private GameObject spawnedCar; // Reference to the spawned car
     public int maxScore = 0;
 
+    private EnemyCar EnemyCar;
+    private GameObject EnemyCarObject;
+    [SerializeField] private GameObject EnemyCarPrefab;
 
     private void Awake()
     {
@@ -119,8 +122,14 @@ public class LevelManager : MonoBehaviour
         if (spawnPoint == null) return;
 
         // Spawn the car
+        MultiplayerController.OnCarTransformReciecved += (carTransform) =>
+        {
+            EnemyCar.transformInfo = carTransform;
+        };
         spawnedCar = Instantiate(levelData.carPrefab, spawnPoint.position, spawnPoint.rotation);
-        GameManager.Instance.StartSendCarTransform(spawnedCar.GetComponent<Transform>());
+        GameManager.Instance.StartSendCarTransform(spawnedCar.transform);
+        EnemyCarObject = Instantiate(EnemyCarPrefab, spawnedCar.transform.position, spawnedCar.transform.rotation);
+        EnemyCar = EnemyCarObject.GetComponent<EnemyCar>();
 
         // Assign a random color
         Renderer carRenderer = spawnedCar.GetComponentInChildren<Renderer>(); // Assuming the car has a Renderer
@@ -148,6 +157,7 @@ public class LevelManager : MonoBehaviour
 
     public void FinishRace()
     {
+        //GameManager.Instance.StopSendCarTransform();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
     

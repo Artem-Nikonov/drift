@@ -52,7 +52,7 @@ public class AllGamesServer : MonoBehaviour
     public void Start()
     {
 #if UNITY_EDITOR
-//SceneManager.LoadScene("Gameplay");
+SceneManager.LoadScene(1);
 #endif
     }
 

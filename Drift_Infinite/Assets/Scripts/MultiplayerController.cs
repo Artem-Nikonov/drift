@@ -33,14 +33,26 @@ public class MultiplayerController : MonoBehaviour
 public class CarTransformInfo
 {
     public string connectionId;
-    public Vector position;
-    public Vector rotation;
+    public Position position;
+    public Rotation rotation;
 }
 
 [Serializable]
-public struct Vector
+public struct Position
 {
     public float x;
     public float y;
     public float z;
 }
+
+
+[Serializable]
+public struct Rotation
+{
+    public float x;
+    public float y;
+    public float z;
+    public float w;
+}
+
+
