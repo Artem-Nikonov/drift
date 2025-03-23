@@ -9,10 +9,12 @@ public class Lobby
     public string gameName;
     public string guid;
     public List<PlayerInfo> players;
-    public int remainingTime;
-    public int lifeTime;
+    public int selectedLevel;
+    public List<string> usersConnections;
+    //public int remainingTime;
+    //public int lifeTime;
     public string Id => $"{chatId}_{gameName}";
-    public TimeSpan RemainingTimeSpan => TimeSpan.FromSeconds(remainingTime);
+    //public TimeSpan RemainingTimeSpan => TimeSpan.FromSeconds(remainingTime);
 }
 
 [Serializable]

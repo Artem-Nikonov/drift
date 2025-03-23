@@ -6,9 +6,16 @@ using System;
 
 public class MultiplayerController : MonoBehaviour
 {
-    public static event Action<string> OnEnterLobbyNotify;
+
+    public void Start()
+    {
+        //Debug.LogError("Start MultiplayerController");
+    }
+    public static event Action<string, bool> OnEnterLobbyNotify;
 
     public static event Action<CarTransformInfo> OnCarTransformReciecved;
+    
+    public static event Action OnStartGame;
 
     [DllImport("__Internal")]
     public static extern void enterLobby(string lobbyId);
@@ -17,16 +24,18 @@ public class MultiplayerController : MonoBehaviour
     public static extern void sendCarTransform(string lobbyId, string carTransformJSON);
 
 
-    public void EnterLobbyNotify(string message)
-    {
-        OnEnterLobbyNotify?.Invoke(message);
-    }
+    public void EnterLobbyNotify(string userId) => OnEnterLobbyNotify?.Invoke(userId, false);
 
-    public void CarPositionReciecved(string carTransformJSON)
+    public void GetSelfId(string userId) => OnEnterLobbyNotify?.Invoke(userId, true);
+
+    public void StartGame() => OnStartGame?.Invoke();
+
+    public void CarTransformReciecved(string carTransformJSON)
     {
         var carPositionInfo = JsonUtility.FromJson<CarTransformInfo>(carTransformJSON);
         OnCarTransformReciecved?.Invoke(carPositionInfo);
     }
+
 }
 
 [Serializable]

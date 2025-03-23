@@ -29,7 +29,6 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private GameObject claimedButton;
     [SerializeField] private Button startButton;
 
-    public static LevelManager Instance { get; private set; }
 
     [Header("Car Colors")]
     public List<Color> carColors = new List<Color> { Color.green, Color.yellow, Color.red, Color.blue, new Color(1.0f, 0.5f, 0.0f), Color.magenta }; // Orange & Pink
@@ -40,10 +39,12 @@ public class LevelManager : MonoBehaviour
     private EnemyCar EnemyCar;
     private GameObject EnemyCarObject;
     [SerializeField] private GameObject EnemyCarPrefab;
+    private Dictionary<string, EnemyCar> EnemyCars = new();
+
+
 
     private void Awake()
     {
-        Instance ??= this;
         Application.targetFrameRate = 60;
     }
 
@@ -56,7 +57,8 @@ public class LevelManager : MonoBehaviour
         }
 
         // Select a random level but do not activate it yet
-        selectedLevelIndex = UnityEngine.Random.Range(0, levelPrefabs.Count);
+        var levelIndex = GameManager.Instance.selectedLevel;
+        selectedLevelIndex = levelIndex < levelPrefabs.Count ? levelIndex : 0;
 
         // Set the correct animation bool based on selected level
         if (animator != null)
@@ -103,12 +105,12 @@ public class LevelManager : MonoBehaviour
         }
 
         // Spawn the car in the level
-        SpawnCar(selectedLevel);
+        SpawnCars(selectedLevel);
 
         Debug.Log("Activated Level: " + selectedLevel.name);
     }
 
-    private void SpawnCar(GameObject level)
+    private void SpawnCars(GameObject level)
     {
         Level levelData = level.GetComponent<Level>();
         if (levelData == null)
@@ -117,44 +119,61 @@ public class LevelManager : MonoBehaviour
             return;
         }
 
-        // Get a random spawn point
-        Transform spawnPoint = levelData.GetRandomSpawnPoint();
-        if (spawnPoint == null) return;
+        var connections = GameManager.Instance.Connections;
+        var spawnPointIndex = connections.IndexOf(GameManager.Instance.SelfId);
+        if (connections.Count > levelData.spawnPoints.Count) return;
 
-        // Spawn the car
-        MultiplayerController.OnCarTransformReciecved += (carTransform) =>
-        {
-            EnemyCar.transformInfo = carTransform;
-        };
-        spawnedCar = Instantiate(levelData.carPrefab, spawnPoint.position, spawnPoint.rotation);
-        GameManager.Instance.StartSendCarTransform(spawnedCar.transform);
-        EnemyCarObject = Instantiate(EnemyCarPrefab, spawnedCar.transform.position, spawnedCar.transform.rotation);
-        EnemyCar = EnemyCarObject.GetComponent<EnemyCar>();
+        spawnedCar = Instantiate(levelData.carPrefab, levelData.spawnPoints[spawnPointIndex].position, levelData.spawnPoints[spawnPointIndex].rotation);
 
-        // Assign a random color
-        Renderer carRenderer = spawnedCar.GetComponentInChildren<Renderer>(); // Assuming the car has a Renderer
-        if (carRenderer != null)
+        for (int i = 0; i < connections.Count; i++)
         {
-            carRenderer.material.color = carColors[UnityEngine.Random.Range(0, carColors.Count)];
-        }
-        else
-        {
-            Debug.LogWarning("Spawned car does not have a Renderer!");
-        }
+            if (i == spawnPointIndex) continue;
+            var enemy = Instantiate(EnemyCarPrefab, levelData.spawnPoints[i].position, levelData.spawnPoints[i].rotation);
+            var enemyCar = enemy.TryGetComponent<EnemyCar>(out var enemyCarComponent);
 
-        // Find and assign CinemachineVirtualCamera
-        CinemachineVirtualCamera cinemachineCam = FindObjectOfType<CinemachineVirtualCamera>();
-        if (cinemachineCam != null)
-        {
-            cinemachineCam.Follow = spawnedCar.transform;
-            cinemachineCam.LookAt = spawnedCar.transform;
-        }
-        else
-        {
-            Debug.LogWarning("CinemachineVirtualCamera not found in the scene!");
+            if (enemyCarComponent != null)
+            {
+                EnemyCars.TryAdd(connections[i], enemyCarComponent);
+            }
+
+
+            MultiplayerController.OnCarTransformReciecved += UpdateEnemyCarTransform;
+            MultiplayerController.OnStartGame += StartQueue;
+            GameManager.Instance.StartSendCarTransform(spawnedCar.transform);
+
+            // Assign a random color
+            Renderer carRenderer = spawnedCar.GetComponentInChildren<Renderer>(); // Assuming the car has a Renderer
+            if (carRenderer != null)
+            {
+                carRenderer.material.color = carColors[UnityEngine.Random.Range(0, carColors.Count)];
+            }
+            else
+            {
+                Debug.LogWarning("Spawned car does not have a Renderer!");
+            }
+
+            // Find and assign CinemachineVirtualCamera
+            CinemachineVirtualCamera cinemachineCam = FindObjectOfType<CinemachineVirtualCamera>();
+            if (cinemachineCam != null)
+            {
+                cinemachineCam.Follow = spawnedCar.transform;
+                cinemachineCam.LookAt = spawnedCar.transform;
+            }
+            else
+            {
+                Debug.LogWarning("CinemachineVirtualCamera not found in the scene!");
+            }
         }
     }
 
+
+    private void UpdateEnemyCarTransform(CarTransformInfo carTransform)
+    {
+        if (EnemyCars.TryGetValue(carTransform.connectionId, out var car))
+        {
+            car.transformInfo = carTransform;
+        }
+    }
     public void FinishRace()
     {
         //GameManager.Instance.StopSendCarTransform();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,9 +10,11 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] private Button startButton;
     [SerializeField] private TextMeshProUGUI startButtonText;
+    [SerializeField] private TextMeshProUGUI PlayersCountText;
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private RaitingController raitingController;
     private float lobbyLifeTineInSeconds = 1800f;
+    public int selectedLevel { get; private set; } = 2;
 
     [Header("RaitingTable")]
     [SerializeField] private Image lobbyTopButtonImage;
@@ -34,6 +37,10 @@ public class GameManager : MonoBehaviour
     private List<PlayerInfo> topPlayers = new();
     private List<PlayerInfo> lobbyPlayers = new();
 
+    private HashSet<string> connections = new();
+    public List<string> Connections => /*connections.OrderBy(c => c).ToList()*/ new() {"1", "2", "3", "4", "5"};
+    public string SelfId { get; private set; } = "5";
+
     public static string gameName => "drift-infinite";
 
     public static string LobbyId =>
@@ -55,6 +62,10 @@ public class GameManager : MonoBehaviour
         InitializeGameInfo();
     }
 
+    private void OnDestroy()
+    {
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -65,11 +76,12 @@ public class GameManager : MonoBehaviour
     {
         AllGamesServer.Instance.GetLobby(gameName, /*AllGamesServer.Instance.startData?.chatId*/ "12345", lobby =>
         {
+            selectedLevel = lobby.selectedLevel;
             LobbyGuid = lobby.guid;
             lobbyPlayers = lobby.players;
-            lobbyLifeTineInSeconds = lobby.lifeTime;
-            Timer = lobby.RemainingTimeSpan;
-            StartCoroutine(TimerUpdater());
+            //lobbyLifeTineInSeconds = lobby.lifeTime;
+            //Timer = lobby.RemainingTimeSpan;
+            //StartCoroutine(TimerUpdater());
         },
         () =>
         {
@@ -86,7 +98,6 @@ public class GameManager : MonoBehaviour
         },
         () =>
         {
-
             Debug.Log("Не удалось получить информацию об игре");
         });
     }
@@ -96,9 +107,12 @@ public class GameManager : MonoBehaviour
         lobbyTopButtonImage.color = Color.white;
         gameTopButtonImage.color = new Color32(255, 255, 255, 100);
         raitingController.ShowPlayers(lobbyPlayers);
-        MultiplayerController.OnEnterLobbyNotify += (msg) =>
+
+        MultiplayerController.OnEnterLobbyNotify += (id, isSelfId) =>
         {
-            
+            connections.Add(id);
+            if(isSelfId) SelfId = id;
+            PlayersCountText.text = connections.Count.ToString();
         };
         MultiplayerController.enterLobby(LobbyId);
     }

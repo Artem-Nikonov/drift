@@ -43,7 +43,7 @@ public class DriftSystem : MonoBehaviour
             driftProgressSlider.value = 0f;
         }
 
-        levelManager = LevelManager.Instance;
+        levelManager = FindAnyObjectByType<LevelManager>();
         isFinished = false;
     }
 
