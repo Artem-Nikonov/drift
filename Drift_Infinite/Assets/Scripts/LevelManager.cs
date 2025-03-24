@@ -41,11 +41,22 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private GameObject EnemyCarPrefab;
     private Dictionary<string, EnemyCar> EnemyCars = new();
 
-
+    private void Start()
+    {
+        MultiplayerController.OnStartGame += StartQueue;
+        MultiplayerController.OnPlayerHasCompletedRace += DestroyEnemyCar;
+    }
 
     private void Awake()
     {
         Application.targetFrameRate = 60;
+    }
+
+    private void OnDestroy()
+    {
+        MultiplayerController.OnCarTransformReciecved -= UpdateEnemyCarTransform;
+        MultiplayerController.OnStartGame -= StartQueue;
+        MultiplayerController.OnPlayerHasCompletedRace -= DestroyEnemyCar;
     }
 
     public void SelectRandomLevel()
@@ -120,6 +131,9 @@ public class LevelManager : MonoBehaviour
         }
 
         var connections = GameManager.Instance.Connections;
+
+        if (!connections.Contains(GameManager.Instance.SelfId)) return;
+
         var spawnPointIndex = connections.IndexOf(GameManager.Instance.SelfId);
         if (connections.Count > levelData.spawnPoints.Count) return;
 
@@ -138,7 +152,6 @@ public class LevelManager : MonoBehaviour
 
 
             MultiplayerController.OnCarTransformReciecved += UpdateEnemyCarTransform;
-            MultiplayerController.OnStartGame += StartQueue;
             GameManager.Instance.StartSendCarTransform(spawnedCar.transform);
 
             // Assign a random color
@@ -167,23 +180,27 @@ public class LevelManager : MonoBehaviour
     }
 
 
-    private void UpdateEnemyCarTransform(CarTransformInfo carTransform)
-    {
-        if (EnemyCars.TryGetValue(carTransform.connectionId, out var car))
-        {
-            car.transformInfo = carTransform;
-        }
-    }
     public void FinishRace()
     {
-        //GameManager.Instance.StopSendCarTransform();
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        GameManager.Instance.StopSendCarTransform();
+        results.SetActive(true);
+        upperMenu.SetActive(true);
     }
-    
+
     public void CloseResults()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
+
+    //public void FinishRace()
+    //{
+    //    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    //}
+    
+    //public void CloseResults()
+    //{
+    //    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    //}
 
 
     public void StopQueue()
@@ -204,6 +221,22 @@ public class LevelManager : MonoBehaviour
     {
         claimButton.SetActive(false);
         claimedButton.SetActive(true);
+    }
+
+    private void UpdateEnemyCarTransform(CarTransformInfo carTransform)
+    {
+        if (EnemyCars.TryGetValue(carTransform.connectionId, out var car))
+        {
+            car.transformInfo = carTransform;
+        }
+    }
+
+    private void DestroyEnemyCar(string userId)
+    {
+        if(EnemyCars.TryGetValue(userId, out var car))
+        {
+            Destroy(car.gameObject);
+        }
     }
 
 }

@@ -145,7 +145,7 @@ SceneManager.LoadScene(1);
     }
 
     public void GetTopPlayersInfo(string gameName, Action<GameTop> onLoad, Action onError) => StartCoroutine(SendGetRequest($"api/v1/Games/topPlayersInfo/{gameName}", onLoad, onError));
-    public void GetLobby(string gameName, string chatId, Action<Lobby> onLoad, Action onError) => StartCoroutine(SendGetRequest($"api/v1/Games/lobby?gameName={gameName}&chatId={chatId}", onLoad, onError));
+    public void GetLobby(string gameName, string chatId, Action<Lobby> onLoad, Action onError) => StartCoroutine(SendGetRequest($"api/v1/Games/multiplayerLobby?gameName={gameName}&chatId={chatId}", onLoad, onError));
     public void SendLobbyGameResult(string lobbyId, int score, string messageId, Action onLoad)
     {
         var body = new GameResult

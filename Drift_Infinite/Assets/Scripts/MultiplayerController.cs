@@ -14,7 +14,10 @@ public class MultiplayerController : MonoBehaviour
     public static event Action<string, bool> OnEnterLobbyNotify;
 
     public static event Action<CarTransformInfo> OnCarTransformReciecved;
-    
+
+    public static event Action<string> OnPlayerHasCompletedRace;
+
+
     public static event Action OnStartGame;
 
     [DllImport("__Internal")]
@@ -23,12 +26,17 @@ public class MultiplayerController : MonoBehaviour
     [DllImport("__Internal")]
     public static extern void sendCarTransform(string lobbyId, string carTransformJSON);
 
+    [DllImport("__Internal")]
+    public static extern void sendGameResult(string lobbyId, string gameResultJSON);
+
 
     public void EnterLobbyNotify(string userId) => OnEnterLobbyNotify?.Invoke(userId, false);
 
     public void GetSelfId(string userId) => OnEnterLobbyNotify?.Invoke(userId, true);
 
     public void StartGame() => OnStartGame?.Invoke();
+
+    public void PlayerHasCompletedRace(string userId) => OnPlayerHasCompletedRace?.Invoke(userId);
 
     public void CarTransformReciecved(string carTransformJSON)
     {

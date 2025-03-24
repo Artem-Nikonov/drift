@@ -5,7 +5,7 @@ public class EnemyCar : MonoBehaviour
     private float smoothSpeed = 3f; // —корость интерпол€ции
 
 
-    public CarTransformInfo? transformInfo = null;
+    public CarTransformInfo transformInfo { get; set; } = null;
     // Start is called before the first frame update
     void Start()
     {

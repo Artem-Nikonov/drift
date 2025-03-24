@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.SocialPlatforms.Impl;
 using UnityEngine.UI;
 
 public class DriftSystem : MonoBehaviour
@@ -249,7 +250,6 @@ public class DriftSystem : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log("hellooooooooo");
         if (other.CompareTag("DriftBoost"))
         {
             isInDriftBoostZone = true;
@@ -297,13 +297,20 @@ public class DriftSystem : MonoBehaviour
     {
         gameplayCanvas.SetActive(false);
         levelManager.finalScore.text = driftPointsText.text;
-        if (driftPoints > levelManager.maxScore)
+
+        levelManager.maxScore = driftPoints;
+        var result = new GameResult
         {
-            levelManager.maxScore = driftPoints;
-            AllGamesServer.Instance.SendLobbyGameResult(GameManager.LobbyId, driftPoints, AllGamesServer.Instance.startData?.startParam, levelManager.FinishRace);
-            return;
-        }
+            score = driftPoints,
+            messageId = AllGamesServer.Instance.startData?.startParam,
+            key = EncryptionService.GenerateGameResultKey(GameManager.LobbyGuid, driftPoints)
+        };
+        MultiplayerController.sendGameResult(GameManager.LobbyId, JsonUtility.ToJson(result));
         levelManager.FinishRace();
+
+        //AllGamesServer.Instance.SendLobbyGameResult(GameManager.LobbyId, driftPoints, AllGamesServer.Instance.startData?.startParam, levelManager.FinishRace);
+
+
     }
 }
     

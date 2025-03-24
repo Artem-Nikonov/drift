@@ -1074,9 +1074,10 @@ GameObject:
   - component: {fileID: 8085962349489178573}
   - component: {fileID: 38572834011153326}
   - component: {fileID: 8853312824838132444}
+  - component: {fileID: 5234801490978519146}
   m_Layer: 8
   m_Name: Enemy_Car_Controller
-  m_TagString: Car
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1255,7 +1256,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4337749011901007760}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 398d06ec47ad57e4289eeab1daf74507, type: 3}
   m_Name: 
@@ -1352,6 +1353,18 @@ MonoBehaviour:
   carLayer:
     serializedVersion: 2
     m_Bits: 256
+--- !u!114 &5234801490978519146
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4337749011901007760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df1ac2dcbdcb4314b8adfb2a14fe91a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4915639596844846432
 GameObject:
   m_ObjectHideFlags: 0
