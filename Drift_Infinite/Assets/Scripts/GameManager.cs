@@ -19,7 +19,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Image lobbyTopButtonImage;
     [SerializeField] private Image gameTopButtonImage;
 
-    [SerializeField] private TextMeshProUGUI signalRTestOutput;
     public static GameManager Instance;
 
     private TimeSpan timer;
@@ -36,21 +35,29 @@ public class GameManager : MonoBehaviour
     private List<PlayerInfo> topPlayers = new();
     private List<PlayerInfo> lobbyPlayers = new();
 
-    private List<string> connections = new();
-    public List<string> Connections =>
+    private List<long> connections = new();
+
+    public List<long> Connections =>
 #if UNITY_EDITOR
-         new() {"1", "2", "3", "4", "5"};
+         new() {1, 2, 3, 4, 5};
 #else
         connections.OrderBy(c => c).ToList();
 #endif
-    public string SelfId { get; private set; } = "2";
-    public int selectedLevel { get; private set; }
+
+    public long SelfId { get; private set; } =
+#if UNITY_EDITOR
+        2;
+#else
+        0;
+#endif
+    public int MaxPlayersCount { get; set; }
+    public int SelectedLevel { get; private set; }
 
     public static string gameName => "drift-infinite";
 
     public static string LobbyId =>
 #if !UNITY_EDITOR
-         $"{/*AllGamesServer.Instance.startData?.chatId ?? ""*/ "12345"}_{gameName}";
+         $"{AllGamesServer.Instance.startData?.chatId}_{gameName}";
 #else
         "12345_drift-infinite";
 #endif
@@ -71,6 +78,8 @@ public class GameManager : MonoBehaviour
     private void OnDestroy()
     {
         MultiplayerController.OnEnterLobbyNotify -= EnterLobbyNotify;
+        MultiplayerController.OnLeaveLobbyNotify -= LeaveLobbyNotify;
+        MultiplayerController.OnSessionFull -= SessionFullHandler;
     }
 
     // Update is called once per frame
@@ -81,9 +90,10 @@ public class GameManager : MonoBehaviour
 
     public void InitializeLobbyInfo()
     {
-        AllGamesServer.Instance.GetLobby(gameName, /*AllGamesServer.Instance.startData?.chatId*/ "12345", lobby =>
+        AllGamesServer.Instance.GetLobby(gameName, AllGamesServer.Instance.startData?.chatId, lobby =>
         {
-            selectedLevel = lobby.selectedLevel;
+            SelectedLevel = lobby.selectedLevel;
+            MaxPlayersCount = lobby.maxPlayersCount;
             LobbyGuid = lobby.guid;
             lobbyPlayers = lobby.players;
             connections = lobby.usersConnections;
@@ -91,6 +101,8 @@ public class GameManager : MonoBehaviour
             //Timer = lobby.RemainingTimeSpan;
             //StartCoroutine(TimerUpdater());
             MultiplayerController.OnEnterLobbyNotify += EnterLobbyNotify;
+            MultiplayerController.OnLeaveLobbyNotify += LeaveLobbyNotify;
+            MultiplayerController.OnSessionFull += SessionFullHandler;
             MultiplayerController.enterLobby(LobbyId);
         },
         () =>
@@ -177,12 +189,21 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void EnterLobbyNotify(string id, bool isSelfId)
+    private void EnterLobbyNotify(long id, bool isSelfId)
     {
         if (connections.Contains(id)) return;
         connections.Add(id);
         if (isSelfId) SelfId = id;
-        PlayersCountText.text = connections.Count.ToString();
+        PlayersCountText.text = $"Joined players {connections.Count}/{MaxPlayersCount}";
     }
+
+    private void LeaveLobbyNotify(long id)
+    {
+        if (!connections.Contains(id)) return;
+        connections.Remove(id);
+        PlayersCountText.text = $"Joined players {connections.Count}/{MaxPlayersCount}";
+    }
+
+    private void SessionFullHandler() => PlayersCountText.text = "The session is full";
 
 }

@@ -28,6 +28,8 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private GameObject claimButton;
     [SerializeField] private GameObject claimedButton;
     [SerializeField] private Button startButton;
+    [SerializeField] private Button playAgainButton;
+    [SerializeField] private RaitingController raitingController;
 
 
     [Header("Car Colors")]
@@ -39,12 +41,15 @@ public class LevelManager : MonoBehaviour
     private EnemyCar EnemyCar;
     private GameObject EnemyCarObject;
     [SerializeField] private GameObject EnemyCarPrefab;
-    private Dictionary<string, EnemyCar> EnemyCars = new();
+    private Dictionary<long, EnemyCar> EnemyCars = new();
 
     private void Start()
     {
         MultiplayerController.OnStartGame += StartQueue;
         MultiplayerController.OnPlayerHasCompletedRace += DestroyEnemyCar;
+        MultiplayerController.OnGameOver += GameOverHandler;
+
+        SetPlayAgainButtonState(false);
     }
 
     private void Awake()
@@ -57,6 +62,7 @@ public class LevelManager : MonoBehaviour
         MultiplayerController.OnCarTransformReciecved -= UpdateEnemyCarTransform;
         MultiplayerController.OnStartGame -= StartQueue;
         MultiplayerController.OnPlayerHasCompletedRace -= DestroyEnemyCar;
+        MultiplayerController.OnGameOver -= GameOverHandler;
     }
 
     public void SelectRandomLevel()
@@ -68,7 +74,7 @@ public class LevelManager : MonoBehaviour
         }
 
         // Select a random level but do not activate it yet
-        var levelIndex = GameManager.Instance.selectedLevel;
+        var levelIndex = GameManager.Instance.SelectedLevel;
         selectedLevelIndex = levelIndex < levelPrefabs.Count ? levelIndex : 0;
 
         // Set the correct animation bool based on selected level
@@ -182,6 +188,7 @@ public class LevelManager : MonoBehaviour
 
     public void FinishRace()
     {
+        Debug.Log("FinishRace");
         GameManager.Instance.StopSendCarTransform();
         results.SetActive(true);
         upperMenu.SetActive(true);
@@ -191,16 +198,6 @@ public class LevelManager : MonoBehaviour
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
-
-    //public void FinishRace()
-    //{
-    //    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-    //}
-    
-    //public void CloseResults()
-    //{
-    //    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-    //}
 
 
     public void StopQueue()
@@ -231,12 +228,33 @@ public class LevelManager : MonoBehaviour
         }
     }
 
-    private void DestroyEnemyCar(string userId)
+    private void DestroyEnemyCar(long userId)
     {
         if(EnemyCars.TryGetValue(userId, out var car))
         {
             Destroy(car.gameObject);
         }
+    }
+
+    private void GameOverHandler(Lobby lobby)
+    {
+        SetPlayAgainButtonState(true);
+        raitingController.ShowPlayers(lobby.players);
+    }
+
+    private void SetPlayAgainButtonState(bool setInteractable)
+    {
+        if (setInteractable)
+        {
+            playAgainButton.interactable = true;
+            playAgainButton.GetComponentInChildren<TextMeshProUGUI>().text = "Play Again";
+        }
+        else
+        {
+            playAgainButton.interactable = false;
+            playAgainButton.GetComponentInChildren<TextMeshProUGUI>().text = "Waiting for the others...";
+        }
+
     }
 
 }

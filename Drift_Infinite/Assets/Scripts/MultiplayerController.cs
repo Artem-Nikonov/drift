@@ -11,14 +11,20 @@ public class MultiplayerController : MonoBehaviour
     {
         //Debug.LogError("Start MultiplayerController");
     }
-    public static event Action<string, bool> OnEnterLobbyNotify;
+    public static event Action<long, bool> OnEnterLobbyNotify;
+
+    public static event Action<long> OnLeaveLobbyNotify;
 
     public static event Action<CarTransformInfo> OnCarTransformReciecved;
 
-    public static event Action<string> OnPlayerHasCompletedRace;
-
+    public static event Action<long> OnPlayerHasCompletedRace;
 
     public static event Action OnStartGame;
+
+    public static event Action<Lobby> OnGameOver;
+
+    public static event Action OnSessionFull;
+
 
     [DllImport("__Internal")]
     public static extern void enterLobby(string lobbyId);
@@ -30,13 +36,40 @@ public class MultiplayerController : MonoBehaviour
     public static extern void sendGameResult(string lobbyId, string gameResultJSON);
 
 
-    public void EnterLobbyNotify(string userId) => OnEnterLobbyNotify?.Invoke(userId, false);
+    public void EnterLobbyNotify(string userId)
+    {
+        if(long.TryParse(userId, out var id))
+        {
+            OnEnterLobbyNotify?.Invoke(id, false);
+        }
+    }
 
-    public void GetSelfId(string userId) => OnEnterLobbyNotify?.Invoke(userId, true);
+    public void GetSelfId(string userId)
+    {
+        if(long.TryParse(userId, out var id))
+        {
+            OnEnterLobbyNotify?.Invoke(id, true);
+        }
+    }
+
+    public void LeaveLobbyNotify(string userId)
+    {
+        if(long.TryParse(userId, out var id))
+        {
+            OnLeaveLobbyNotify?.Invoke(id);
+        }
+    }
 
     public void StartGame() => OnStartGame?.Invoke();
 
-    public void PlayerHasCompletedRace(string userId) => OnPlayerHasCompletedRace?.Invoke(userId);
+    public void PlayerHasCompletedRace(string userId)
+    {
+        if(long.TryParse(userId, out var id))
+        {
+            OnPlayerHasCompletedRace?.Invoke(id);
+        }
+
+    }
 
     public void CarTransformReciecved(string carTransformJSON)
     {
@@ -44,12 +77,20 @@ public class MultiplayerController : MonoBehaviour
         OnCarTransformReciecved?.Invoke(carPositionInfo);
     }
 
+    public void GameOver(string lobbyJSON)
+    {
+        var lobby = JsonUtility.FromJson<Lobby>(lobbyJSON);
+        OnGameOver?.Invoke(lobby);
+    }
+
+    public void SessionFull() => OnSessionFull?.Invoke();
+
 }
 
 [Serializable]
 public class CarTransformInfo
 {
-    public string connectionId;
+    public long connectionId;
     public Position position;
     public Rotation rotation;
 }

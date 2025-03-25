@@ -10,7 +10,8 @@ public class Lobby
     public string guid;
     public List<PlayerInfo> players;
     public int selectedLevel;
-    public List<string> usersConnections;
+    public List<long> usersConnections;
+    public int maxPlayersCount;
     //public int remainingTime;
     //public int lifeTime;
     public string Id => $"{chatId}_{gameName}";

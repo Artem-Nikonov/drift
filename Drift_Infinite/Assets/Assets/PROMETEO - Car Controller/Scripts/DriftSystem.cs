@@ -299,6 +299,7 @@ public class DriftSystem : MonoBehaviour
         levelManager.finalScore.text = driftPointsText.text;
 
         levelManager.maxScore = driftPoints;
+        
         var result = new GameResult
         {
             score = driftPoints,
@@ -306,7 +307,9 @@ public class DriftSystem : MonoBehaviour
             key = EncryptionService.GenerateGameResultKey(GameManager.LobbyGuid, driftPoints)
         };
         MultiplayerController.sendGameResult(GameManager.LobbyId, JsonUtility.ToJson(result));
+
         levelManager.FinishRace();
+
 
         //AllGamesServer.Instance.SendLobbyGameResult(GameManager.LobbyId, driftPoints, AllGamesServer.Instance.startData?.startParam, levelManager.FinishRace);
 
