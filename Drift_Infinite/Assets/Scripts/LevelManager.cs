@@ -47,6 +47,7 @@ public class LevelManager : MonoBehaviour
     {
         MultiplayerController.OnStartGame += StartQueue;
         MultiplayerController.OnPlayerHasCompletedRace += DestroyEnemyCar;
+        MultiplayerController.OnLeaveLobbyNotify += DestroyEnemyCar;
         MultiplayerController.OnGameOver += GameOverHandler;
 
         SetPlayAgainButtonState(false);
@@ -63,6 +64,7 @@ public class LevelManager : MonoBehaviour
         MultiplayerController.OnStartGame -= StartQueue;
         MultiplayerController.OnPlayerHasCompletedRace -= DestroyEnemyCar;
         MultiplayerController.OnGameOver -= GameOverHandler;
+        MultiplayerController.OnLeaveLobbyNotify -= DestroyEnemyCar;
     }
 
     public void SelectRandomLevel()
@@ -224,7 +226,7 @@ public class LevelManager : MonoBehaviour
     {
         if (EnemyCars.TryGetValue(carTransform.connectionId, out var car))
         {
-            car.transformInfo = carTransform;
+            car.UpdateCarTransform(carTransform);
         }
     }
 
@@ -233,13 +235,15 @@ public class LevelManager : MonoBehaviour
         if(EnemyCars.TryGetValue(userId, out var car))
         {
             Destroy(car.gameObject);
+            EnemyCars.Remove(userId);
         }
     }
 
-    private void GameOverHandler(Lobby lobby)
+    private void GameOverHandler(GameTop top)
     {
+        raitingController.ShowPlayers(top.players);
         SetPlayAgainButtonState(true);
-        raitingController.ShowPlayers(lobby.players);
+        
     }
 
     private void SetPlayAgainButtonState(bool setInteractable)

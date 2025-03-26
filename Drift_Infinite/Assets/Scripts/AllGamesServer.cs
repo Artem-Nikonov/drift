@@ -28,9 +28,9 @@ public class AllGamesServer : MonoBehaviour
 
     public string connectionString =>
 #if UNITY_EDITOR
-        connectOnMain ? "localhost:7055" : "localhost:7055";
+        connectOnMain ? "allgames.zorya.tech" : "localhost:7055";
 #else
-        "localhost:7055";
+        "allgames.zorya.tech";
 #endif
 
     private string cookie;
@@ -62,8 +62,13 @@ SceneManager.LoadScene(1);
 
         StartCoroutine(SendPostRequest("api/v1/Auth", startData.initData, (req) =>
         {
-            SceneManager.LoadScene(1);
+            MultiplayerController.connectToHub();
         }));
+    }
+
+    public void ConnectionSuccessful()
+    {
+        SceneManager.LoadScene(1);
     }
 
     private IEnumerator SendGetRequest<T>(string url, Action<T> onLoad, Action onError)

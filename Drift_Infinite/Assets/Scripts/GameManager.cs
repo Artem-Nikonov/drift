@@ -104,6 +104,7 @@ public class GameManager : MonoBehaviour
             MultiplayerController.OnLeaveLobbyNotify += LeaveLobbyNotify;
             MultiplayerController.OnSessionFull += SessionFullHandler;
             MultiplayerController.enterLobby(LobbyId);
+            Debug.Log(JsonUtility.ToJson(lobby));
         },
         () =>
         {

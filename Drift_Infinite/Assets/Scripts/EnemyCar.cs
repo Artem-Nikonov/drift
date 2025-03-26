@@ -2,25 +2,42 @@ using UnityEngine;
 
 public class EnemyCar : MonoBehaviour
 {
-    private float smoothSpeed = 3f; // —корость интерпол€ции
+    private Vector3 previousPosition;
+    private Vector3 targetPosition;
+    private Quaternion previousRotation;
+    private Quaternion targetRotation;
+    private float interpolationTime = 0f;
+    private float updateRate = 0.2f; // „астота обновлени€ от сервера (в секундах)
 
-
-    public CarTransformInfo transformInfo { get; set; } = null;
-    // Start is called before the first frame update
     void Start()
     {
+        previousPosition = transform.position;
+        targetPosition = transform.position;
+        previousRotation = transform.rotation;
+        targetRotation = transform.rotation;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (transformInfo != null)
+        if (interpolationTime < updateRate)
         {
-            var pos = transformInfo.position;
-            transform.position = Vector3.Lerp(transform.position, new Vector3(pos.x, pos.y, pos.z), smoothSpeed * Time.deltaTime);
+            interpolationTime += Time.deltaTime;
+            float t = interpolationTime / updateRate; // Ќормализуем [0,1]
 
-            var rot = transformInfo.rotation;
-            transform.rotation = Quaternion.Slerp(transform.rotation, new Quaternion(rot.x, rot.y, rot.z, rot.w), smoothSpeed * Time.deltaTime);
+            transform.position = Vector3.Lerp(previousPosition, targetPosition, t);
+            transform.rotation = Quaternion.Slerp(previousRotation, targetRotation, t);
         }
+    }
+
+    public void UpdateCarTransform(CarTransformInfo newTransform)
+    {
+        // —охран€ем старые позиции и назначаем новые
+        previousPosition = transform.position;
+        previousRotation = transform.rotation;
+
+        targetPosition = new Vector3(newTransform.position.x, newTransform.position.y, newTransform.position.z);
+        targetRotation = new Quaternion(newTransform.rotation.x, newTransform.rotation.y, newTransform.rotation.z, newTransform.rotation.w);
+
+        interpolationTime = 0f; // —брасываем интерпол€цию
     }
 }

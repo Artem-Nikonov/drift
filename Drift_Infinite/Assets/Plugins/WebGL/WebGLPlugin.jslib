@@ -1,5 +1,18 @@
 mergeInto(LibraryManager.library, {
 
+    connectToHub: function(){
+        if (!window.connection) {
+            console.error("SignalR connection is not initialized!");
+            return;
+        }
+        window.connection.start().then(function () {
+            console.log("Connected to game!");
+            SendMessage('MainServer', 'ConnectionSuccessful')
+        }).catch(function (err) {
+            console.error("Error connecting to SignalR hub: ", err.toString());
+        });
+    },
+
     enterLobby: function (lobbyId) {
         if (!window.connection) {
             console.error("SignalR connection is not initialized!");

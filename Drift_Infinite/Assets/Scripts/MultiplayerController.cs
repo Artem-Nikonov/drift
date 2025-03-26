@@ -9,7 +9,6 @@ public class MultiplayerController : MonoBehaviour
 
     public void Start()
     {
-        //Debug.LogError("Start MultiplayerController");
     }
     public static event Action<long, bool> OnEnterLobbyNotify;
 
@@ -21,10 +20,12 @@ public class MultiplayerController : MonoBehaviour
 
     public static event Action OnStartGame;
 
-    public static event Action<Lobby> OnGameOver;
+    public static event Action<GameTop> OnGameOver;
 
     public static event Action OnSessionFull;
 
+    [DllImport("__Internal")]
+    public static extern void connectToHub();
 
     [DllImport("__Internal")]
     public static extern void enterLobby(string lobbyId);
@@ -77,10 +78,10 @@ public class MultiplayerController : MonoBehaviour
         OnCarTransformReciecved?.Invoke(carPositionInfo);
     }
 
-    public void GameOver(string lobbyJSON)
+    public void GameOver(string playersJSON)
     {
-        var lobby = JsonUtility.FromJson<Lobby>(lobbyJSON);
-        OnGameOver?.Invoke(lobby);
+        var top = JsonUtility.FromJson<GameTop>(playersJSON);
+        OnGameOver?.Invoke(top);
     }
 
     public void SessionFull() => OnSessionFull?.Invoke();
