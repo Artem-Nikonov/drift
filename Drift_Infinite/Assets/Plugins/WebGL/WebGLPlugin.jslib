@@ -13,13 +13,13 @@ mergeInto(LibraryManager.library, {
         });
     },
 
-    enterLobby: function (lobbyId) {
+    enterLobby: function (lobbyId, carColor) {
         if (!window.connection) {
             console.error("SignalR connection is not initialized!");
             return;
         }
 
-        window.connection.invoke("EnterLobby", UTF8ToString(lobbyId))
+        window.connection.invoke("EnterLobby", UTF8ToString(lobbyId), carColor)
             .then(function () {
                 console.log("Successfully entered lobby: " + UTF8ToString(lobbyId));
             })

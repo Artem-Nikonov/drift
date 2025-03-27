@@ -10,7 +10,7 @@ public class Lobby
     public string guid;
     public List<PlayerInfo> players;
     public int selectedLevel;
-    public List<long> usersConnections;
+    public List<DrifterInfo> usersConnections;
     public int maxPlayersCount;
     //public int remainingTime;
     //public int lifeTime;

@@ -13,6 +13,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI PlayersCountText;
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private RaitingController raitingController;
+    [SerializeField] private ConnectionsViewController connectionsViewController;
+    [SerializeField] private LevelManager LevelManager;
     private float lobbyLifeTineInSeconds = 1800f;
 
     [Header("RaitingTable")]
@@ -32,16 +34,17 @@ public class GameManager : MonoBehaviour
         get => timer;
     }
 
-    private List<PlayerInfo> topPlayers = new();
+    private List<PlayerInfo> topPlayers = new() { new PlayerInfo() { userName = "1", score = 5}, new PlayerInfo() { userName = "2", score = 125 } };
     private List<PlayerInfo> lobbyPlayers = new();
+    private List<DrifterInfo> drifters = new() { new DrifterInfo { userName = "dd", carColor = 1, userId = 1}, new DrifterInfo { userName = "ddhj", carColor = 2, userId = 2 } };
 
-    private List<long> connections = new();
+    private List<DrifterInfo> connections = new();
 
-    public List<long> Connections =>
+    public List<DrifterInfo> Connections =>
 #if UNITY_EDITOR
-         new() {1, 2, 3, 4, 5};
+         new() { new DrifterInfo {userId = 1, userName = "User1", carColor = 0 }, new DrifterInfo { userId = 2, userName = "User2", carColor = 1 }, new DrifterInfo { userId = 2, userName = "User2", carColor = 2 }, new DrifterInfo { userId = 2, userName = "User2", carColor = 3 }, new DrifterInfo { userId = 2, userName = "User2", carColor = 4 } };
 #else
-        connections.OrderBy(c => c).ToList();
+        connections.OrderBy(c => c.userId).ToList();
 #endif
 
     public long SelfId { get; private set; } =
@@ -90,26 +93,27 @@ public class GameManager : MonoBehaviour
 
     public void InitializeLobbyInfo()
     {
-        AllGamesServer.Instance.GetLobby(gameName, AllGamesServer.Instance.startData?.chatId, lobby =>
-        {
-            SelectedLevel = lobby.selectedLevel;
-            MaxPlayersCount = lobby.maxPlayersCount;
-            LobbyGuid = lobby.guid;
-            lobbyPlayers = lobby.players;
-            connections = lobby.usersConnections;
-            //lobbyLifeTineInSeconds = lobby.lifeTime;
-            //Timer = lobby.RemainingTimeSpan;
-            //StartCoroutine(TimerUpdater());
-            MultiplayerController.OnEnterLobbyNotify += EnterLobbyNotify;
-            MultiplayerController.OnLeaveLobbyNotify += LeaveLobbyNotify;
-            MultiplayerController.OnSessionFull += SessionFullHandler;
-            MultiplayerController.enterLobby(LobbyId);
-            Debug.Log(JsonUtility.ToJson(lobby));
-        },
-        () =>
-        {
-            Debug.Log("Не удалось получить информацию о лобби");
-        });
+        //AllGamesServer.Instance.GetLobby(gameName, AllGamesServer.Instance.startData?.chatId, lobby =>
+        //{
+        //    SelectedLevel = lobby.selectedLevel;
+        //    MaxPlayersCount = lobby.maxPlayersCount;
+        //    LobbyGuid = lobby.guid;
+        //    lobbyPlayers = lobby.players;
+        //    connections = lobby.usersConnections;
+        //    //lobbyLifeTineInSeconds = lobby.lifeTime;
+        //    //Timer = lobby.RemainingTimeSpan;
+        //    //StartCoroutine(TimerUpdater());
+
+        //    MultiplayerController.OnEnterLobbyNotify += EnterLobbyNotify;
+        //    MultiplayerController.OnLeaveLobbyNotify += LeaveLobbyNotify;
+        //    MultiplayerController.OnSessionFull += SessionFullHandler;
+        //    MultiplayerController.enterLobby(LobbyId, LevelManager.SelectedCarColor);
+        //    ShowLobbyPlayers();
+        //},
+        //() =>
+        //{
+        //    Debug.Log("Не удалось получить информацию о лобби");
+        //});
     }
 
     public void InitializeGameInfo()
@@ -117,7 +121,6 @@ public class GameManager : MonoBehaviour
         AllGamesServer.Instance.GetTopPlayersInfo(gameName, top =>
         {
             topPlayers = top.players;
-            ShowGameTop();
         },
         () =>
         {
@@ -125,17 +128,26 @@ public class GameManager : MonoBehaviour
         });
     }
 
-    public void ShowLobbyTop()
+    public void ShowLobbyPlayers()
     {
+        Debug.Log("!!!!!!!!!!!!!!!!!!!!!!!!!");
+        raitingController.SetActive(false);
+        connectionsViewController.SetActive(true);
+
         lobbyTopButtonImage.color = Color.white;
         gameTopButtonImage.color = new Color32(255, 255, 255, 100);
-        raitingController.ShowPlayers(lobbyPlayers);
+        Debug.Log(JsonUtility.ToJson(drifters));
+        connectionsViewController.ShowPlayers(new() { new DrifterInfo { userName = "dd", carColor = 1, userId = 1}, new DrifterInfo { userName = "ddhj", carColor = 2, userId = 2 }, true);
     }
 
     
 
     public void ShowGameTop()
     {
+
+        connectionsViewController.SetActive(false);
+        raitingController.SetActive(true);
+
         gameTopButtonImage.color = Color.white;
         lobbyTopButtonImage.color = new Color32(255, 255, 255, 100);
         raitingController.ShowPlayers(topPlayers);
@@ -169,7 +181,7 @@ public class GameManager : MonoBehaviour
         {
             var data = new CarTransformInfo
             {
-                connectionId = SelfId,
+                userId = SelfId,
                 position = new Position
                 {
                     x = carTransform.position.x,
@@ -190,18 +202,26 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void EnterLobbyNotify(long id, bool isSelfId)
+    private void EnterLobbyNotify(DrifterInfo drifterInfo, bool isSelfInfo)
     {
-        if (connections.Contains(id)) return;
-        connections.Add(id);
-        if (isSelfId) SelfId = id;
+        if (connections.FirstOrDefault(c => c.userId == drifterInfo.userId) != null) return;
+        if (isSelfInfo) SelfId = drifterInfo.userId;
+        connections.Add(drifterInfo);
+        connectionsViewController.AddPlayer(drifterInfo);
         PlayersCountText.text = $"Joined players {connections.Count}/{MaxPlayersCount}";
+    }
+
+    private void GetSelfInfo(UserInfo userInfo)
+    {
+        SelfId = userInfo.userId;
     }
 
     private void LeaveLobbyNotify(long id)
     {
-        if (!connections.Contains(id)) return;
-        connections.Remove(id);
+        var connection = connections.FirstOrDefault(c => c.userId == id);
+        if (connection == null) return;
+        connections.Remove(connection);
+        connectionsViewController.RemovePlayer(id);
         PlayersCountText.text = $"Joined players {connections.Count}/{MaxPlayersCount}";
     }
 

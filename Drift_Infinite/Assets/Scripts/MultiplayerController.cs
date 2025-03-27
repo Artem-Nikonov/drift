@@ -10,7 +10,7 @@ public class MultiplayerController : MonoBehaviour
     public void Start()
     {
     }
-    public static event Action<long, bool> OnEnterLobbyNotify;
+    public static event Action<DrifterInfo, bool> OnEnterLobbyNotify;
 
     public static event Action<long> OnLeaveLobbyNotify;
 
@@ -24,11 +24,12 @@ public class MultiplayerController : MonoBehaviour
 
     public static event Action OnSessionFull;
 
+
     [DllImport("__Internal")]
     public static extern void connectToHub();
 
     [DllImport("__Internal")]
-    public static extern void enterLobby(string lobbyId);
+    public static extern void enterLobby(string lobbyId, int carColor);
 
     [DllImport("__Internal")]
     public static extern void sendCarTransform(string lobbyId, string carTransformJSON);
@@ -37,20 +38,16 @@ public class MultiplayerController : MonoBehaviour
     public static extern void sendGameResult(string lobbyId, string gameResultJSON);
 
 
-    public void EnterLobbyNotify(string userId)
+    public void EnterLobbyNotify(string drifterInfoJSON)
     {
-        if(long.TryParse(userId, out var id))
-        {
-            OnEnterLobbyNotify?.Invoke(id, false);
-        }
+        var enemyInfo = JsonUtility.FromJson<DrifterInfo>(drifterInfoJSON);
+        OnEnterLobbyNotify?.Invoke(enemyInfo, false);
     }
 
-    public void GetSelfId(string userId)
+    public void GetSelfInfo(string drifterInfoJSON)
     {
-        if(long.TryParse(userId, out var id))
-        {
-            OnEnterLobbyNotify?.Invoke(id, true);
-        }
+        var userInfo = JsonUtility.FromJson<DrifterInfo>(drifterInfoJSON);
+        OnEnterLobbyNotify?.Invoke(userInfo, true);
     }
 
     public void LeaveLobbyNotify(string userId)
@@ -88,10 +85,24 @@ public class MultiplayerController : MonoBehaviour
 
 }
 
+
+[Serializable]
+public class UserInfo
+{
+    public long userId;
+    public string userName;
+}
+
+[Serializable]
+public class DrifterInfo: UserInfo
+{
+    public int carColor;
+}
+
 [Serializable]
 public class CarTransformInfo
 {
-    public long connectionId;
+    public long userId;
     public Position position;
     public Rotation rotation;
 }
