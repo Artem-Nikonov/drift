@@ -28,9 +28,9 @@ public class AllGamesServer : MonoBehaviour
 
     public string connectionString =>
 #if UNITY_EDITOR
-        connectOnMain ? "allgames.zorya.tech" : "localhost:7055";
+        connectOnMain ? "allgamesapp.ru" : "localhost:7055";
 #else
-        "allgames.zorya.tech";
+        "allgamesapp.ru";
 #endif
 
     private string cookie;

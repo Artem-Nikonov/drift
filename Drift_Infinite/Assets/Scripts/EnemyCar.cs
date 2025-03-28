@@ -1,6 +1,54 @@
 using TMPro;
 using UnityEngine;
 
+
+public class EnemyCar : MonoBehaviour
+{
+    [SerializeField] private Renderer renderer;
+    [SerializeField] private TextMeshProUGUI userNane;
+    public Renderer Renderer => renderer;
+    public TextMeshProUGUI UserName => userNane;
+    private Vector3 previousPosition;
+    private Vector3 targetPosition;
+    private Quaternion previousRotation;
+    private Quaternion targetRotation;
+    private float interpolationTime = 0f;
+    private float updateRate = 0.2f; // Частота обновления от сервера (в секундах)
+
+    void Start()
+    {
+        previousPosition = transform.position;
+        targetPosition = transform.position;
+        previousRotation = transform.rotation;
+        targetRotation = transform.rotation;
+    }
+
+    void Update()
+    {
+        if (interpolationTime < updateRate)
+        {
+            interpolationTime += Time.deltaTime;
+            float t = interpolationTime / updateRate; // Нормализуем [0,1]
+
+            transform.position = Vector3.Lerp(previousPosition, targetPosition, t);
+            transform.rotation = Quaternion.Slerp(previousRotation, targetRotation, t);
+        }
+    }
+
+    public void UpdateCarTransform(CarTransformInfo newTransform)
+    {
+        // Сохраняем старые позиции и назначаем новые
+        previousPosition = transform.position;
+        previousRotation = transform.rotation;
+
+        targetPosition = new Vector3(newTransform.position.x, newTransform.position.y, newTransform.position.z);
+        targetRotation = new Quaternion(newTransform.rotation.x, newTransform.rotation.y, newTransform.rotation.z, newTransform.rotation.w);
+
+        interpolationTime = 0f; // Сбрасываем интерполяцию
+    }
+}
+
+
 //public class EnemyCar : MonoBehaviour
 //{
 //    private CarTransformInfo transformInfo = null;
@@ -85,70 +133,70 @@ using UnityEngine;
 //    }
 //}
 
-public class EnemyCar : MonoBehaviour
-{
+//public class EnemyCar : MonoBehaviour
+//{
 
-    [SerializeField] private Renderer renderer;
-    [SerializeField] private TextMeshProUGUI userNane;
-    public Renderer Renderer => renderer;
-    public TextMeshProUGUI UserName => userNane;
-    private float smoothSpeed = 3f; // Скорость интерполяции
+//    [SerializeField] private Renderer renderer;
+//    [SerializeField] private TextMeshProUGUI userNane;
+//    public Renderer Renderer => renderer;
+//    public TextMeshProUGUI UserName => userNane;
+//    private float smoothSpeed = 3f; // Скорость интерполяции
 
-    public CarTransformInfo previousTransformInfo { get; private set; }
-    public CarTransformInfo currentTransformInfo { get; private set; }
+//    public CarTransformInfo previousTransformInfo { get; private set; }
+//    public CarTransformInfo currentTransformInfo { get; private set; }
 
-    private float interpolationTime; // Время интерполяции между состояниями
-    private float timeSinceLastUpdate; // Время с момента получения последнего состояния
+//    private float interpolationTime; // Время интерполяции между состояниями
+//    private float timeSinceLastUpdate; // Время с момента получения последнего состояния
 
-    void Update()
-    {
-        if (currentTransformInfo != null && previousTransformInfo != null)
-        {
-            // Увеличиваем счетчик времени
-            timeSinceLastUpdate += Time.deltaTime;
+//    void Update()
+//    {
+//        if (currentTransformInfo != null && previousTransformInfo != null)
+//        {
+//            // Увеличиваем счетчик времени
+//            timeSinceLastUpdate += Time.deltaTime;
 
-            // Вычисляем коэффициент интерполяции (от 0 до 1)
-            float lerpFactor = timeSinceLastUpdate / interpolationTime;
-            lerpFactor = Mathf.Clamp01(lerpFactor); // Ограничиваем значение в диапазоне [0, 1]
+//            // Вычисляем коэффициент интерполяции (от 0 до 1)
+//            float lerpFactor = timeSinceLastUpdate / interpolationTime;
+//            lerpFactor = Mathf.Clamp01(lerpFactor); // Ограничиваем значение в диапазоне [0, 1]
 
-            // Интерполяция позиции
-            var pos = Vector3.Lerp(
-                new Vector3(previousTransformInfo.position.x, previousTransformInfo.position.y, previousTransformInfo.position.z),
-                new Vector3(currentTransformInfo.position.x, currentTransformInfo.position.y, currentTransformInfo.position.z),
-                lerpFactor
-            );
-            transform.position = pos;
+//            // Интерполяция позиции
+//            var pos = Vector3.Lerp(
+//                new Vector3(previousTransformInfo.position.x, previousTransformInfo.position.y, previousTransformInfo.position.z),
+//                new Vector3(currentTransformInfo.position.x, currentTransformInfo.position.y, currentTransformInfo.position.z),
+//                lerpFactor
+//            );
+//            transform.position = pos;
 
-            // Интерполяция поворота
-            var rot = Quaternion.Slerp(
-                new Quaternion(previousTransformInfo.rotation.x, previousTransformInfo.rotation.y, previousTransformInfo.rotation.z, previousTransformInfo.rotation.w),
-                new Quaternion(currentTransformInfo.rotation.x, currentTransformInfo.rotation.y, currentTransformInfo.rotation.z, currentTransformInfo.rotation.w),
-                lerpFactor
-            );
-            transform.rotation = rot;
-        }
-    }
+//            // Интерполяция поворота
+//            var rot = Quaternion.Slerp(
+//                new Quaternion(previousTransformInfo.rotation.x, previousTransformInfo.rotation.y, previousTransformInfo.rotation.z, previousTransformInfo.rotation.w),
+//                new Quaternion(currentTransformInfo.rotation.x, currentTransformInfo.rotation.y, currentTransformInfo.rotation.z, currentTransformInfo.rotation.w),
+//                lerpFactor
+//            );
+//            transform.rotation = rot;
+//        }
+//    }
 
-    // Метод для обновления состояния объекта
-    public void UpdateTransformInfo(CarTransformInfo newTransformInfo)
-    {
-        if (currentTransformInfo == null)
-        {
-            // Если это первое обновление, просто устанавливаем начальное состояние
-            currentTransformInfo = newTransformInfo;
-            timeSinceLastUpdate = 0f;
-        }
-        else
-        {
-            // Перемещаем текущее состояние в предыдущее
-            previousTransformInfo = currentTransformInfo;
-            currentTransformInfo = newTransformInfo;
+//    // Метод для обновления состояния объекта
+//    public void UpdateTransformInfo(CarTransformInfo newTransformInfo)
+//    {
+//        if (currentTransformInfo == null)
+//        {
+//            // Если это первое обновление, просто устанавливаем начальное состояние
+//            currentTransformInfo = newTransformInfo;
+//            timeSinceLastUpdate = 0f;
+//        }
+//        else
+//        {
+//            // Перемещаем текущее состояние в предыдущее
+//            previousTransformInfo = currentTransformInfo;
+//            currentTransformInfo = newTransformInfo;
 
-            // Сбрасываем таймер
-            timeSinceLastUpdate = 0f;
+//            // Сбрасываем таймер
+//            timeSinceLastUpdate = 0f;
 
-            // Устанавливаем время интерполяции (например, 0.2 секунды - частота отправки данных)
-            interpolationTime = 0.1f;
-        }
-    }
-}
+//            // Устанавливаем время интерполяции (например, 0.2 секунды - частота отправки данных)
+//            interpolationTime = 0.1f;
+//        }
+//    }
+//}
