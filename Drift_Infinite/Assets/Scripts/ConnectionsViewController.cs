@@ -10,7 +10,7 @@ public class ConnectionsViewController : MonoBehaviour
     [SerializeField] private Transform tabContent;
     [SerializeField] private ConnectedPlayerNode tabPrefab;
 
-    private Dictionary<long, GameObject> nodes = new();
+    private Dictionary<long, GameObject> Nodes = new();
 
     public void ShowPlayers(List<DrifterInfo> drifters, bool clearContent)
     {
@@ -26,21 +26,22 @@ public class ConnectionsViewController : MonoBehaviour
 
     public void AddPlayer(DrifterInfo drifter)
     {
+        if (Nodes.ContainsKey(drifter.userId)) return;
         var tab = Instantiate(tabPrefab, tabContent);
 
         var avatar = drifter.carColor < Avatars.Length ? Avatars[drifter.carColor] : Avatars[0];
 
         tab.InitNote(drifter.userName, avatar);
 
-        nodes.TryAdd(drifter.userId, tab.gameObject);
+        Nodes.TryAdd(drifter.userId, tab.gameObject);
     }
 
     public void RemovePlayer(long userId)
     {
-        if(nodes.TryGetValue(userId, out var node) && node != null)
+        if(Nodes.TryGetValue(userId, out var node) && node != null)
         {
             Destroy(node);
-            nodes.Remove(userId);
+            Nodes.Remove(userId);
         }
     }
 
@@ -50,5 +51,7 @@ public class ConnectionsViewController : MonoBehaviour
         {
             Destroy(tab.gameObject);
         }
+
+        Nodes.Clear();
     }
 }

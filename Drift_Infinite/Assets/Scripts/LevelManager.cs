@@ -238,7 +238,7 @@ public class LevelManager : MonoBehaviour
     {
         if (EnemyCars.TryGetValue(carTransform.userId, out var car))
         {
-            car.transformInfo = carTransform;
+            car.UpdateTransformInfo(carTransform);
         }
     }
 

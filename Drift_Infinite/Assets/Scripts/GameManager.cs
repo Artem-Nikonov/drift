@@ -35,8 +35,6 @@ public class GameManager : MonoBehaviour
     }
 
     private List<PlayerInfo> topPlayers = new() { new PlayerInfo() { userName = "1", score = 5}, new PlayerInfo() { userName = "2", score = 125 } };
-    private List<PlayerInfo> lobbyPlayers = new();
-    private List<DrifterInfo> drifters = new() { new DrifterInfo { userName = "dd", carColor = 1, userId = 1}, new DrifterInfo { userName = "ddhj", carColor = 2, userId = 2 } };
 
     private List<DrifterInfo> connections = new();
 
@@ -93,27 +91,24 @@ public class GameManager : MonoBehaviour
 
     public void InitializeLobbyInfo()
     {
-        //AllGamesServer.Instance.GetLobby(gameName, AllGamesServer.Instance.startData?.chatId, lobby =>
-        //{
-        //    SelectedLevel = lobby.selectedLevel;
-        //    MaxPlayersCount = lobby.maxPlayersCount;
-        //    LobbyGuid = lobby.guid;
-        //    lobbyPlayers = lobby.players;
-        //    connections = lobby.usersConnections;
-        //    //lobbyLifeTineInSeconds = lobby.lifeTime;
-        //    //Timer = lobby.RemainingTimeSpan;
-        //    //StartCoroutine(TimerUpdater());
+        AllGamesServer.Instance.GetLobby(gameName, AllGamesServer.Instance.startData?.chatId, lobby =>
+        {
+            SelectedLevel = lobby.selectedLevel;
+            MaxPlayersCount = lobby.maxPlayersCount;
+            LobbyGuid = lobby.guid;
+            connections = lobby.usersConnections;
 
-        //    MultiplayerController.OnEnterLobbyNotify += EnterLobbyNotify;
-        //    MultiplayerController.OnLeaveLobbyNotify += LeaveLobbyNotify;
-        //    MultiplayerController.OnSessionFull += SessionFullHandler;
-        //    MultiplayerController.enterLobby(LobbyId, LevelManager.SelectedCarColor);
-        //    ShowLobbyPlayers();
-        //},
-        //() =>
-        //{
-        //    Debug.Log("Не удалось получить информацию о лобби");
-        //});
+            MultiplayerController.OnEnterLobbyNotify += EnterLobbyNotify;
+            MultiplayerController.OnLeaveLobbyNotify += LeaveLobbyNotify;
+            MultiplayerController.OnSessionFull += SessionFullHandler;
+            MultiplayerController.enterLobby(LobbyId, LevelManager.SelectedCarColor);
+            ShowLobbyPlayers();
+        },
+        () =>
+        {
+            Debug.Log("Не удалось получить информацию о лобби");
+        });
+        
     }
 
     public void InitializeGameInfo()
@@ -130,14 +125,12 @@ public class GameManager : MonoBehaviour
 
     public void ShowLobbyPlayers()
     {
-        Debug.Log("!!!!!!!!!!!!!!!!!!!!!!!!!");
         raitingController.SetActive(false);
         connectionsViewController.SetActive(true);
 
         lobbyTopButtonImage.color = Color.white;
         gameTopButtonImage.color = new Color32(255, 255, 255, 100);
-        Debug.Log(JsonUtility.ToJson(drifters));
-        connectionsViewController.ShowPlayers(new() { new DrifterInfo { userName = "dd", carColor = 1, userId = 1}, new DrifterInfo { userName = "ddhj", carColor = 2, userId = 2 }, true);
+        connectionsViewController.ShowPlayers(connections, true);
     }
 
     
@@ -198,7 +191,7 @@ public class GameManager : MonoBehaviour
             };
             MultiplayerController.sendCarTransform(LobbyId, JsonUtility.ToJson(data));
 
-            yield return new WaitForSeconds(0.2f);
+            yield return new WaitForSeconds(0.1f);
         }
     }
 
@@ -228,3 +221,4 @@ public class GameManager : MonoBehaviour
     private void SessionFullHandler() => PlayersCountText.text = "The session is full";
 
 }
+

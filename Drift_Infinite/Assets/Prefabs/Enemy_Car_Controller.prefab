@@ -931,12 +931,8 @@ GameObject:
   - component: {fileID: 2207444443690084997}
   - component: {fileID: 4937564539393956475}
   - component: {fileID: 5139700512800354959}
-  - component: {fileID: 9165576644468789626}
   - component: {fileID: 5743621209140133308}
-  - component: {fileID: 7904265655072730481}
   - component: {fileID: 8085962349489178573}
-  - component: {fileID: 38572834011153326}
-  - component: {fileID: 8853312824838132444}
   - component: {fileID: 5234801490978519146}
   m_Layer: 8
   m_Name: Enemy_Car_Controller
@@ -1110,25 +1106,8 @@ MonoBehaviour:
     AngularVelucityInMaxAngle: 0.5
     AngularVelucityInMinAngle: 2
   MaxMotorTorque: 0
-  driftSystem: {fileID: 38572834011153326}
+  driftSystem: {fileID: 0}
   InHandBrake: 0
---- !u!114 &9165576644468789626
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4337749011901007760}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 398d06ec47ad57e4289eeab1daf74507, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Body: {fileID: 2905313519158548392}
-  MaxAngle: 10
-  AngleVelocityMultiplayer: 0.2
-  RearAngleVelocityMultiplayer: 0.4
-  MaxTiltOnSpeed: 60
 --- !u!114 &5743621209140133308
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1148,19 +1127,6 @@ MonoBehaviour:
   SlipSource: {fileID: 8532247319604819862}
   MinSlipSound: 0.15
   MaxSlipForSound: 1
---- !u!114 &7904265655072730481
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4337749011901007760}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aeb67c03a9a7bb745b02d885278296b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  steeringWheel: {fileID: 0}
 --- !u!81 &8085962349489178573
 AudioListener:
   m_ObjectHideFlags: 0
@@ -1169,53 +1135,6 @@ AudioListener:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4337749011901007760}
   m_Enabled: 0
---- !u!114 &38572834011153326
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4337749011901007760}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8d428f64857efad458c35604b8c0e400, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  carController: {fileID: 5139700512800354959}
-  useDriftPoints: 1
-  driftPoints: 0
-  pointsMultiplier: 10
-  driftMultiplier: 1
-  driftEffectPrefab: {fileID: 4593184484909914552, guid: 2e1e9506f5904a64b81744324fb7cd50,
-    type: 3}
-  explosion: {fileID: 8853312824838132444}
-  isDrifting: 0
-  driftProgressSlider: {fileID: 0}
-  driftPointsText: {fileID: 0}
-  driftMultiplierText: {fileID: 0}
-  boostedText: {fileID: 0}
-  gameplayCanvas: {fileID: 0}
-  levelManager: {fileID: 0}
-  isFinished: 0
---- !u!114 &8853312824838132444
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4337749011901007760}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1e91ff2176052b64a951f89e989c2412, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  explosionRadius: 30
-  safeRadius: 0
-  explosionForce: 15000
-  upwardsModifier: 2
-  carLayer:
-    serializedVersion: 2
-    m_Bits: 256
 --- !u!114 &5234801490978519146
 MonoBehaviour:
   m_ObjectHideFlags: 0
