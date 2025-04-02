@@ -81,6 +81,7 @@ public class GameManager : MonoBehaviour
         MultiplayerController.OnEnterLobbyNotify -= EnterLobbyNotify;
         MultiplayerController.OnLeaveLobbyNotify -= LeaveLobbyNotify;
         MultiplayerController.OnSessionFull -= SessionFullHandler;
+        MultiplayerController.OnQueueCompleted -= QueueCompletedHandler;
     }
 
     // Update is called once per frame
@@ -101,6 +102,7 @@ public class GameManager : MonoBehaviour
             MultiplayerController.OnEnterLobbyNotify += EnterLobbyNotify;
             MultiplayerController.OnLeaveLobbyNotify += LeaveLobbyNotify;
             MultiplayerController.OnSessionFull += SessionFullHandler;
+            MultiplayerController.OnQueueCompleted += QueueCompletedHandler;
             MultiplayerController.enterLobby(LobbyId, LevelManager.SelectedCarColor);
             ShowLobbyPlayers();
         },
@@ -204,10 +206,6 @@ public class GameManager : MonoBehaviour
         PlayersCountText.text = $"Joined players {connections.Count}/{MaxPlayersCount}";
     }
 
-    private void GetSelfInfo(UserInfo userInfo)
-    {
-        SelfId = userInfo.userId;
-    }
 
     private void LeaveLobbyNotify(long id)
     {
@@ -218,7 +216,26 @@ public class GameManager : MonoBehaviour
         PlayersCountText.text = $"Joined players {connections.Count}/{MaxPlayersCount}";
     }
 
-    private void SessionFullHandler() => PlayersCountText.text = "The session is full";
+    private void SessionFullHandler() => PlayersCountText.text = "Game has already started! Awaiting the next round...";
+
+    private void QueueCompletedHandler()
+    {
+        AllGamesServer.Instance.GetLobby(gameName, AllGamesServer.Instance.startData?.chatId, lobby =>
+        {
+            SelectedLevel = lobby.selectedLevel;
+            MaxPlayersCount = lobby.maxPlayersCount;
+            LobbyGuid = lobby.guid;
+            connections = lobby.usersConnections;
+
+            MultiplayerController.enterLobby(LobbyId, LevelManager.SelectedCarColor);
+            ShowLobbyPlayers();
+        },
+        () =>
+        {
+            Debug.Log("Не удалось получить информацию о лобби");
+        });
+
+    }
 
 }
 

@@ -24,6 +24,8 @@ public class MultiplayerController : MonoBehaviour
 
     public static event Action OnSessionFull;
 
+    public static event Action OnQueueCompleted;
+
 
     [DllImport("__Internal")]
     public static extern void connectToHub();
@@ -58,8 +60,6 @@ public class MultiplayerController : MonoBehaviour
         }
     }
 
-    public void StartGame() => OnStartGame?.Invoke();
-
     public void PlayerHasCompletedRace(string userId)
     {
         if(long.TryParse(userId, out var id))
@@ -81,7 +81,11 @@ public class MultiplayerController : MonoBehaviour
         OnGameOver?.Invoke(top);
     }
 
+    public void StartGame() => OnStartGame?.Invoke();
+
     public void SessionFull() => OnSessionFull?.Invoke();
+
+    public void QueueCompleted() => OnQueueCompleted?.Invoke();
 
 }
 
