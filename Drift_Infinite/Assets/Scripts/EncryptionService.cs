@@ -8,7 +8,7 @@ using UnityEngine;
 public class EncryptionService
 {
     private const string Salt = "f7k9p2m4x8q1";
-    public static string GenerateGameResultKey(string lobbyGuid, int score) => ComputeSha256Hash(Salt + lobbyGuid + score);
+    public static string GenerateGameResultKey(long userId,string lobbyGuid, int score) => ComputeSha256Hash(userId + lobbyGuid + score + Salt);
     private static string ComputeSha256Hash(string data)
     {
         using (SHA256 sha256 = SHA256.Create())

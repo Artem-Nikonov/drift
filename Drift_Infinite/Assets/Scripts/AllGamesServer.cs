@@ -19,7 +19,8 @@ public class AllGamesServer : MonoBehaviour
     {
         chatId = "12345",
         initData = "_",
-        startParam = "test"
+        startParam = "test",
+        userId = 100000
     };
 #else
     public ReceiveData startData { get; private set; }
@@ -92,7 +93,6 @@ SceneManager.LoadScene(1);
     private IEnumerator SendPostRequest(string url, string body, Action<UnityWebRequest> onLoad)
     {
         using UnityWebRequest request = new UnityWebRequest($"https://{connectionString}/{url}", "POST");
-        Console.WriteLine(body);
         request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(body));
         request.downloadHandler = new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "text/plain;charset=UTF-8");
@@ -151,16 +151,16 @@ SceneManager.LoadScene(1);
 
     public void GetTopPlayersInfo(string gameName, Action<GameTop> onLoad, Action onError) => StartCoroutine(SendGetRequest($"api/v1/Games/topPlayersInfo/{gameName}", onLoad, onError));
     public void GetLobby(string gameName, string chatId, Action<Lobby> onLoad, Action onError) => StartCoroutine(SendGetRequest($"api/v1/Games/multiplayerLobby?gameName={gameName}&chatId={chatId}", onLoad, onError));
-    public void SendLobbyGameResult(string lobbyId, int score, string messageId, Action onLoad)
-    {
-        var body = new GameResult
-        {
-            score = score,
-            messageId = messageId,
-            key = EncryptionService.GenerateGameResultKey(GameManager.LobbyGuid, score)
-        };
-        StartCoroutine(SendPostRequest($"api/v1/Games/lobbyGameResult/{lobbyId}", JsonUtility.ToJson(body), onLoad));
-    }
+    //public void SendLobbyGameResult(string lobbyId, int score, string messageId, Action onLoad)
+    //{
+    //    var body = new GameResult
+    //    {
+    //        score = score,
+    //        messageId = messageId,
+    //        key = EncryptionService.GenerateGameResultKey(GameManager.LobbyGuid, score)
+    //    };
+    //    StartCoroutine(SendPostRequest($"api/v1/Games/lobbyGameResult/{lobbyId}", JsonUtility.ToJson(body), onLoad));
+    //}
     public void Auth(Action onLoad) => StartCoroutine(SendPostRequest($"api/v1/Auth", onLoad));
 }
 
@@ -168,6 +168,7 @@ SceneManager.LoadScene(1);
 public class ReceiveData
 {
     public string initData;
-    public string startParam;//id ���������, ����� ������ ���� �������� ����
+    public string startParam;
     public string chatId;
+    public long userId;
 }

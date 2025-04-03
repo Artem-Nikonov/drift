@@ -36,7 +36,9 @@ public class LevelManager : MonoBehaviour
     [Header("Car Colors")]
     public List<Color> carColors = new List<Color> { Color.green, Color.yellow, Color.red, Color.blue, new Color(1.0f, 0.5f, 0.0f), Color.magenta }; // Orange & Pink
     private int selectedCarColor = -1;
-    
+
+    [Header("Other")]
+    [SerializeField] private CarTransformSender carTransformSender;
     public int SelectedCarColor
     {
         get
@@ -173,7 +175,7 @@ public class LevelManager : MonoBehaviour
         }
 
         MultiplayerController.OnCarTransformReciecved += UpdateEnemyCarTransform;
-        GameManager.Instance.StartSendCarTransform(spawnedCar.transform);
+        carTransformSender.StartSendCarTransform(spawnedCar.transform);
 
         // Assign a random color
         Renderer carRenderer = spawnedCar.GetComponentInChildren<Renderer>(); // Assuming the car has a Renderer
@@ -203,7 +205,7 @@ public class LevelManager : MonoBehaviour
     public void FinishRace()
     {
         Debug.Log("FinishRace");
-        GameManager.Instance.StopSendCarTransform();
+        carTransformSender.StopSendCarTransform();
         results.SetActive(true);
         upperMenu.SetActive(true);
     }
@@ -223,6 +225,7 @@ public class LevelManager : MonoBehaviour
     
     public void StartQueue()
     {
+        startButton.SetActive(false);
         loadingScreen.SetActive(true);
         SelectRandomLevel();
         startScreen.SetActive(false);

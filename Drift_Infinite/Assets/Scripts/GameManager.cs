@@ -74,11 +74,13 @@ public class GameManager : MonoBehaviour
     {
         InitializeLobbyInfo();
         InitializeGameInfo();
+        startButton.SetActive(false);
     }
 
     private void OnDestroy()
     {
         MultiplayerController.OnEnterLobbyNotify -= EnterLobbyNotify;
+        MultiplayerController.OnGetSelfInfo -= GetSelfInfo;
         MultiplayerController.OnLeaveLobbyNotify -= LeaveLobbyNotify;
         MultiplayerController.OnSessionFull -= SessionFullHandler;
         MultiplayerController.OnQueueCompleted -= QueueCompletedHandler;
@@ -90,6 +92,8 @@ public class GameManager : MonoBehaviour
         
     }
 
+    public void StartGame() => MultiplayerController.startGame(LobbyId);
+
     public void InitializeLobbyInfo()
     {
         AllGamesServer.Instance.GetLobby(gameName, AllGamesServer.Instance.startData?.chatId, lobby =>
@@ -100,6 +104,7 @@ public class GameManager : MonoBehaviour
             connections = lobby.usersConnections;
 
             MultiplayerController.OnEnterLobbyNotify += EnterLobbyNotify;
+            MultiplayerController.OnGetSelfInfo += GetSelfInfo;
             MultiplayerController.OnLeaveLobbyNotify += LeaveLobbyNotify;
             MultiplayerController.OnSessionFull += SessionFullHandler;
             MultiplayerController.OnQueueCompleted += QueueCompletedHandler;
@@ -166,46 +171,56 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void StartSendCarTransform(Transform carTransform) => StartCoroutine(SendCarTransform(carTransform));
+    //public void StartSendCarTransform(Transform carTransform) => StartCoroutine(SendCarTransform(carTransform));
 
-    public void StopSendCarTransform() => StopAllCoroutines();
+    //public void StopSendCarTransform() => StopAllCoroutines();
 
-    private IEnumerator SendCarTransform(Transform carTransform)
+    //private IEnumerator SendCarTransform(Transform carTransform)
+    //{
+    //    while (carTransform != null)
+    //    {
+    //        var data = new CarTransformInfo
+    //        {
+    //            userId = SelfId,
+    //            position = new Position
+    //            {
+    //                x = carTransform.position.x,
+    //                y = carTransform.position.y,
+    //                z = carTransform.position.z,
+    //            },
+    //            rotation = new Rotation
+    //            {
+    //                x = carTransform.rotation.x,
+    //                y = carTransform.rotation.y,
+    //                z = carTransform.rotation.z,
+    //                w = carTransform.rotation.w
+    //            }
+    //        };
+    //        MultiplayerController.sendCarTransform(LobbyId, JsonUtility.ToJson(data));
+
+    //        yield return new WaitForSeconds(0.2f);
+    //    }
+    //}
+
+    private void EnterLobbyNotify(DrifterInfo drifterInfo) => AddConnection(drifterInfo);
+
+    private void GetSelfInfo(SelfInfo selfInfo)
     {
-        while (carTransform != null)
-        {
-            var data = new CarTransformInfo
-            {
-                userId = SelfId,
-                position = new Position
-                {
-                    x = carTransform.position.x,
-                    y = carTransform.position.y,
-                    z = carTransform.position.z,
-                },
-                rotation = new Rotation
-                {
-                    x = carTransform.rotation.x,
-                    y = carTransform.rotation.y,
-                    z = carTransform.rotation.z,
-                    w = carTransform.rotation.w
-                }
-            };
-            MultiplayerController.sendCarTransform(LobbyId, JsonUtility.ToJson(data));
+        if (selfInfo.isLobbyAdmin)
+            startButton.SetActive(true);
 
-            yield return new WaitForSeconds(0.2f);
-        }
+        SelfId = AllGamesServer.Instance.startData.userId;
+        var drifterInfo = new DrifterInfo { userId = SelfId, userName = selfInfo.userName, carColor = LevelManager.SelectedCarColor };
+        AddConnection(drifterInfo);
     }
 
-    private void EnterLobbyNotify(DrifterInfo drifterInfo, bool isSelfInfo)
+    private void AddConnection(DrifterInfo drifterInfo)
     {
         if (connections.FirstOrDefault(c => c.userId == drifterInfo.userId) != null) return;
-        if (isSelfInfo) SelfId = drifterInfo.userId;
         connections.Add(drifterInfo);
         connectionsViewController.AddPlayer(drifterInfo);
         PlayersCountText.text = $"Joined players {connections.Count}/{MaxPlayersCount}";
     }
-
 
     private void LeaveLobbyNotify(long id)
     {
@@ -234,8 +249,23 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log("Не удалось получить информацию о лобби");
         });
-
     }
+
+    public void LeaveLobby()
+    {
+        MultiplayerController.leaveLobby(GameManager.LobbyId);
+        LevelManager.StopQueue();
+
+        var connection = connections.FirstOrDefault(c => c.userId == SelfId);
+        if (connection == null) return;
+
+        connections.Remove(connection);
+        connectionsViewController.RemovePlayer(SelfId);
+
+        PlayersCountText.text = $"You are disconnected";
+    }
+
+    
 
 }
 

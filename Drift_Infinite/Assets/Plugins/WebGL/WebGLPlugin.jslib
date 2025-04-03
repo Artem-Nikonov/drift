@@ -21,10 +21,40 @@ mergeInto(LibraryManager.library, {
 
         window.connection.invoke("EnterLobby", UTF8ToString(lobbyId), carColor)
             .then(function () {
-                console.log("Successfully entered lobby: " + UTF8ToString(lobbyId));
+                console.log("Successfully entered lobby");
             })
             .catch(function (err) {
                 console.error("Error entering lobby: ", err.toString());
+            });
+    },
+
+    leaveLobby: function (lobbyId) {
+        if (!window.connection) {
+            console.error("SignalR connection is not initialized!");
+            return;
+        }
+
+        window.connection.invoke("LeaveLobby", UTF8ToString(lobbyId))
+            .then(function () {
+                console.log("Successful exit from the game");
+            })
+            .catch(function (err) {
+                console.error("Error entering lobby: ", err.toString());
+            });
+    },
+
+    startGame: function (lobbyId) {
+        if (!window.connection) {
+            console.error("SignalR connection is not initialized!");
+            return;
+        }
+
+        window.connection.invoke("StartGame", UTF8ToString(lobbyId))
+            .then(function () {
+                console.log("Game started");
+            })
+            .catch(function (err) {
+                console.error("Error: ", err.toString());
             });
     },
 

@@ -304,7 +304,7 @@ public class DriftSystem : MonoBehaviour
         {
             score = driftPoints,
             messageId = AllGamesServer.Instance.startData?.startParam,
-            key = EncryptionService.GenerateGameResultKey(GameManager.LobbyGuid, driftPoints)
+            key = EncryptionService.GenerateGameResultKey(GameManager.Instance.SelfId, GameManager.LobbyGuid, driftPoints)
         };
         MultiplayerController.sendGameResult(GameManager.LobbyId, JsonUtility.ToJson(result));
 

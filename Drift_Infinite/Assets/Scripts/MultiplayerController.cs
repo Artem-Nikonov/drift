@@ -10,7 +10,9 @@ public class MultiplayerController : MonoBehaviour
     public void Start()
     {
     }
-    public static event Action<DrifterInfo, bool> OnEnterLobbyNotify;
+    public static event Action<DrifterInfo> OnEnterLobbyNotify;
+
+    public static event Action<SelfInfo> OnGetSelfInfo;
 
     public static event Action<long> OnLeaveLobbyNotify;
 
@@ -34,6 +36,12 @@ public class MultiplayerController : MonoBehaviour
     public static extern void enterLobby(string lobbyId, int carColor);
 
     [DllImport("__Internal")]
+    public static extern void startGame(string lobbyId);
+
+    [DllImport("__Internal")]
+    public static extern void leaveLobby(string lobbyId);
+
+    [DllImport("__Internal")]
     public static extern void sendCarTransform(string lobbyId, string carTransformJSON);
 
     [DllImport("__Internal")]
@@ -43,13 +51,13 @@ public class MultiplayerController : MonoBehaviour
     public void EnterLobbyNotify(string drifterInfoJSON)
     {
         var enemyInfo = JsonUtility.FromJson<DrifterInfo>(drifterInfoJSON);
-        OnEnterLobbyNotify?.Invoke(enemyInfo, false);
+        OnEnterLobbyNotify?.Invoke(enemyInfo);
     }
 
-    public void GetSelfInfo(string drifterInfoJSON)
+    public void GetSelfInfo(string selfInfoJSON)
     {
-        var userInfo = JsonUtility.FromJson<DrifterInfo>(drifterInfoJSON);
-        OnEnterLobbyNotify?.Invoke(userInfo, true);
+        var selfInfo = JsonUtility.FromJson<SelfInfo>(selfInfoJSON);
+        OnGetSelfInfo?.Invoke(selfInfo);
     }
 
     public void LeaveLobbyNotify(string userId)
@@ -91,15 +99,17 @@ public class MultiplayerController : MonoBehaviour
 
 
 [Serializable]
-public class UserInfo
+public class SelfInfo
 {
-    public long userId;
     public string userName;
+    public bool isLobbyAdmin;
 }
 
 [Serializable]
-public class DrifterInfo: UserInfo
+public class DrifterInfo
 {
+    public long userId;
+    public string userName;
     public int carColor;
 }
 
