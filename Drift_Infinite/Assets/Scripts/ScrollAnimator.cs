@@ -13,7 +13,6 @@ public class ScrollAnimator : MonoBehaviour
         {
             levelManager.ActivateLevel();
             loadingScreen.SetActive(false);
-            upperScreen.SetActive(false);
         }
         else
         {

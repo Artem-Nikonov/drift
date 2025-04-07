@@ -23,14 +23,15 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private GameObject results;
     [SerializeField] private GameObject startScreen;
     [SerializeField] private GameObject loadingScreen;
-    [SerializeField] private GameObject upperMenu;
     public TextMeshProUGUI finalScore;
     
     [SerializeField] private GameObject claimButton;
     [SerializeField] private GameObject claimedButton;
     [SerializeField] private Button startButton;
+    [SerializeField] private TextMeshProUGUI claimButtonText;
     [SerializeField] private Button playAgainButton;
     [SerializeField] private RaitingController raitingController;
+    [SerializeField] private UserProfile userProfile;
 
 
     [Header("Car Colors")]
@@ -39,6 +40,7 @@ public class LevelManager : MonoBehaviour
 
     [Header("Other")]
     [SerializeField] private CarTransformSender carTransformSender;
+    [SerializeField] private TextMeshProUGUI ResultText;
     public int SelectedCarColor
     {
         get
@@ -51,10 +53,12 @@ public class LevelManager : MonoBehaviour
 
     private GameObject spawnedCar; // Reference to the spawned car
     public int maxScore = 0;
+    private int HeartsReward;
 
 
     [SerializeField] private EnemyCar EnemyCarPrefab;
     private Dictionary<long, EnemyCar> EnemyCars = new();
+
 
     private void Start()
     {
@@ -64,6 +68,7 @@ public class LevelManager : MonoBehaviour
         MultiplayerController.OnGameOver += GameOverHandler;
 
         SetPlayAgainButtonState(false);
+        HideClaimButtons();
     }
 
     private void Awake()
@@ -207,7 +212,6 @@ public class LevelManager : MonoBehaviour
         Debug.Log("FinishRace");
         carTransformSender.StopSendCarTransform();
         results.SetActive(true);
-        upperMenu.SetActive(true);
     }
 
     public void CloseResults()
@@ -220,19 +224,28 @@ public class LevelManager : MonoBehaviour
     {
         loadingScreen.SetActive(false);
         startScreen.SetActive(true);
-        upperMenu.SetActive(true);
+        userProfile.SetActive(true);
+        claimButton.SetActive(false);
+        claimButton.SetActive(false);
     }
     
     public void StartQueue()
     {
         startButton.SetActive(false);
         loadingScreen.SetActive(true);
+        userProfile.SetActive(false);
         SelectRandomLevel();
         startScreen.SetActive(false);
     }
     
+    private void ShowClaimButton(int reward)
+    {
+        claimButton.SetActive(true);
+        claimButtonText.text = $"Claim {reward}";
+    }
     public void ClaimRewards()
     {
+        userProfile.AddBalance(HeartsReward);
         claimButton.SetActive(false);
         claimedButton.SetActive(true);
     }
@@ -256,9 +269,28 @@ public class LevelManager : MonoBehaviour
 
     private void GameOverHandler(GameTop top)
     {
+        userProfile.SetActive(true);
+        var place = top.players.IndexOf(top.players.FirstOrDefault(u => u.userId == GameManager.Instance.SelfId));
+        HeartsReward = place != -1 && GameManager.GameRewards.Count >= place ? GameManager.GameRewards[place] : 0;
+        if(place <= 2)
+        {
+            ResultText.text = "Congratulations, you won!";
+            ShowClaimButton(HeartsReward);
+        }
+        else
+        {
+            ResultText.text = "So close! Wanna try again?";
+        }
+        
         raitingController.ShowPlayers(top.players);
         SetPlayAgainButtonState(true);
         
+    }
+
+    private void HideClaimButtons()
+    {
+        claimButton.SetActive(false);
+        claimedButton.SetActive(false);
     }
 
     private void SetPlayAgainButtonState(bool setInteractable)

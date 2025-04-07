@@ -9,6 +9,7 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private Button startButton;
+    [SerializeField] private GameObject CancelGameButton;
     [SerializeField] private TextMeshProUGUI startButtonText;
     [SerializeField] private TextMeshProUGUI PlayersCountText;
     [SerializeField] private TextMeshProUGUI timerText;
@@ -20,6 +21,9 @@ public class GameManager : MonoBehaviour
     [Header("RaitingTable")]
     [SerializeField] private Image lobbyTopButtonImage;
     [SerializeField] private Image gameTopButtonImage;
+
+    [Header("Other")]
+    [SerializeField] UserProfile userProfile;
 
     public static GameManager Instance;
 
@@ -37,6 +41,8 @@ public class GameManager : MonoBehaviour
     private List<PlayerInfo> topPlayers = new() { new PlayerInfo() { userName = "1", score = 5}, new PlayerInfo() { userName = "2", score = 125 } };
 
     private List<DrifterInfo> connections = new();
+
+    public static List<int> GameRewards { get; private set; } = null;
 
     public List<DrifterInfo> Connections =>
 #if UNITY_EDITOR
@@ -74,6 +80,7 @@ public class GameManager : MonoBehaviour
     {
         InitializeLobbyInfo();
         InitializeGameInfo();
+        GetUserBalance();
         startButton.SetActive(false);
     }
 
@@ -128,6 +135,29 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log("Не удалось получить информацию об игре");
         });
+
+        if (GameRewards != null) return;
+
+        AllGamesServer.Instance.GetGameRewards(gameName, gameRewards =>
+        {
+            GameRewards = gameRewards.reward;
+        },
+        () =>
+        {
+            Debug.Log("Не удалось получить информацию о наградах");
+        });
+    }
+
+    private void GetUserBalance()
+    {
+        AllGamesServer.Instance.GetBalance(userBalance =>
+        {
+            userProfile.SetBalance(userBalance.balance);
+        },
+        () =>
+        {
+            Debug.Log("Не удалось получить информацию об игре");
+        });
     }
 
     public void ShowLobbyPlayers()
@@ -170,37 +200,6 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSeconds(1);
         }
     }
-
-    //public void StartSendCarTransform(Transform carTransform) => StartCoroutine(SendCarTransform(carTransform));
-
-    //public void StopSendCarTransform() => StopAllCoroutines();
-
-    //private IEnumerator SendCarTransform(Transform carTransform)
-    //{
-    //    while (carTransform != null)
-    //    {
-    //        var data = new CarTransformInfo
-    //        {
-    //            userId = SelfId,
-    //            position = new Position
-    //            {
-    //                x = carTransform.position.x,
-    //                y = carTransform.position.y,
-    //                z = carTransform.position.z,
-    //            },
-    //            rotation = new Rotation
-    //            {
-    //                x = carTransform.rotation.x,
-    //                y = carTransform.rotation.y,
-    //                z = carTransform.rotation.z,
-    //                w = carTransform.rotation.w
-    //            }
-    //        };
-    //        MultiplayerController.sendCarTransform(LobbyId, JsonUtility.ToJson(data));
-
-    //        yield return new WaitForSeconds(0.2f);
-    //    }
-    //}
 
     private void EnterLobbyNotify(DrifterInfo drifterInfo) => AddConnection(drifterInfo);
 
@@ -251,21 +250,24 @@ public class GameManager : MonoBehaviour
         });
     }
 
-    public void LeaveLobby()
+    public void LeaveLobby(bool alreaddyInGame)
     {
-        MultiplayerController.leaveLobby(GameManager.LobbyId);
-        LevelManager.StopQueue();
+        MultiplayerController.leaveLobby(LobbyId);
+
+        if (alreaddyInGame)
+        {
+            LevelManager.StopQueue();
+            startButton.SetActive(false);
+        }
 
         var connection = connections.FirstOrDefault(c => c.userId == SelfId);
         if (connection == null) return;
 
         connections.Remove(connection);
         connectionsViewController.RemovePlayer(SelfId);
-
+        CancelGameButton.SetActive(false);
         PlayersCountText.text = $"You are disconnected";
     }
-
-    
 
 }
 

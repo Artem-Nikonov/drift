@@ -78,6 +78,7 @@ SceneManager.LoadScene(1);
         Debug.Log($"https://{connectionString}/{url}");
         yield return request.SendWebRequest();
         if (request.result == UnityWebRequest.Result.ConnectionError ||
+
         request.result == UnityWebRequest.Result.ProtocolError)
 
         {
@@ -151,6 +152,8 @@ SceneManager.LoadScene(1);
 
     public void GetTopPlayersInfo(string gameName, Action<GameTop> onLoad, Action onError) => StartCoroutine(SendGetRequest($"api/v1/Games/topPlayersInfo/{gameName}", onLoad, onError));
     public void GetLobby(string gameName, string chatId, Action<Lobby> onLoad, Action onError) => StartCoroutine(SendGetRequest($"api/v1/Games/multiplayerLobby?gameName={gameName}&chatId={chatId}", onLoad, onError));
+    public void GetGameRewards(string gameName, Action<GameRewards> onLoad, Action onError) => StartCoroutine(SendGetRequest($"api/v1/Games/gameRewards?gameName={gameName}", onLoad, onError));
+    public void GetBalance(Action<UserBalance> onLoad, Action onError) => StartCoroutine(SendGetRequest($"api/v1/General/balance", onLoad, onError));
     //public void SendLobbyGameResult(string lobbyId, int score, string messageId, Action onLoad)
     //{
     //    var body = new GameResult
