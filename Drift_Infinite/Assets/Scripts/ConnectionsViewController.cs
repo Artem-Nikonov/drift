@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Net.WebSockets;
 using UnityEngine;
 
 public class ConnectionsViewController : MonoBehaviour
@@ -10,7 +11,7 @@ public class ConnectionsViewController : MonoBehaviour
     [SerializeField] private Transform tabContent;
     [SerializeField] private ConnectedPlayerNode tabPrefab;
 
-    private Dictionary<long, GameObject> Nodes = new();
+    private Dictionary<long, ConnectedPlayerNode> Nodes = new();
 
     public void ShowPlayers(List<DrifterInfo> drifters, bool clearContent)
     {
@@ -22,25 +23,43 @@ public class ConnectionsViewController : MonoBehaviour
         {
             AddPlayer(drifters[i]);
         }
+
+        foreach(var (id, node) in Nodes)
+        {
+            LoadAvatar(id, node);
+        }
+
     }
 
-    public void AddPlayer(DrifterInfo drifter)
+    public void AddPlayer(DrifterInfo drifter, bool shopwAvatar = false)
     {
         if (Nodes.ContainsKey(drifter.userId)) return;
-        var tab = Instantiate(tabPrefab, tabContent);
+        var node = Instantiate(tabPrefab, tabContent);
 
         var avatar = drifter.carColor < Avatars.Length ? Avatars[drifter.carColor] : Avatars[0];
 
-        tab.InitNote(drifter.userName, avatar);
+        node.InitNote(drifter.userName, avatar);
 
-        Nodes.TryAdd(drifter.userId, tab.gameObject);
+        if (Nodes.TryAdd(drifter.userId, node) && shopwAvatar)
+        {
+            LoadAvatar(drifter.userId, node);
+        }
+    }
+
+
+    public void LoadAvatar(long userId,ConnectedPlayerNode node)
+    {
+        AllGamesServer.Instance.GetAvatar(userId, (texture) =>
+        {
+            node.SetAvatar(texture);
+        });
     }
 
     public void RemovePlayer(long userId)
     {
         if(Nodes.TryGetValue(userId, out var node) && node != null)
         {
-            Destroy(node);
+            Destroy(node.gameObject);
             Nodes.Remove(userId);
         }
     }

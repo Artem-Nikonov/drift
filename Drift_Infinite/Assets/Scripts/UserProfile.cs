@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using System;
+using UnityEngine.UI;
 
 public class UserProfile : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI BalanceText;
+    [SerializeField] private Image UserAvatar;
+
     private static int balance;
     public static int Balance
     {
@@ -24,6 +27,20 @@ public class UserProfile : MonoBehaviour
     {
         balance += sum;
         BalanceText.text = FormatNumber(balance);
+    }
+
+    public void SetAvatar(Texture2D texture)
+    {
+        Sprite avatarSprite = Sprite.Create(
+            texture,                         
+            new Rect(0, 0, texture.width, texture.height), 
+            new Vector2(0.5f, 0.5f)          
+        );
+
+        if (UserAvatar != null)
+        {
+            UserAvatar.sprite = avatarSprite;
+        }
     }
 
     public void ShowBalance() => BalanceText.text = FormatNumber(balance);

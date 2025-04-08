@@ -14,6 +14,18 @@ public class ConnectedPlayerNode : MonoBehaviour
     {
         UserName.text = userName;
         Avatar.sprite = avatarSprite;
+    }
+
+    public void SetAvatar(Texture2D texture)
+    {
+        Sprite avatarSprite = Sprite.Create(
+            texture,
+            new Rect(0, 0, texture.width, texture.height),
+            new Vector2(0.5f, 0.5f)
+        );
+
+        if(Avatar != null)
+            Avatar.sprite = avatarSprite;
 
     }
 }

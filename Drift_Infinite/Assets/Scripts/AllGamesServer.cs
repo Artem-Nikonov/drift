@@ -150,10 +150,31 @@ SceneManager.LoadScene(1);
         onLoad?.Invoke();
     }
 
+
+    IEnumerator LoadAvatarFromServer(long userId, Action<Texture2D> onLoad)
+    {
+        var url = $"https://{connectionString}/api/v1/General/userPhoto?userId={userId}";
+        Debug.Log(url);
+        UnityWebRequest request = UnityWebRequestTexture.GetTexture(url);
+        yield return request.SendWebRequest();
+
+        if (request.result != UnityWebRequest.Result.Success)
+        {
+            Debug.Log(request.error);
+            yield break;
+        }
+
+        Texture2D avatarTexture = DownloadHandlerTexture.GetContent(request);
+
+        Debug.Log("Аватарка успешно загружена!");
+        onLoad?.Invoke(avatarTexture);
+    }
+
     public void GetTopPlayersInfo(string gameName, Action<GameTop> onLoad, Action onError) => StartCoroutine(SendGetRequest($"api/v1/Games/topPlayersInfo/{gameName}", onLoad, onError));
     public void GetLobby(string gameName, string chatId, Action<Lobby> onLoad, Action onError) => StartCoroutine(SendGetRequest($"api/v1/Games/multiplayerLobby?gameName={gameName}&chatId={chatId}", onLoad, onError));
     public void GetGameRewards(string gameName, Action<GameRewards> onLoad, Action onError) => StartCoroutine(SendGetRequest($"api/v1/Games/gameRewards?gameName={gameName}", onLoad, onError));
     public void GetBalance(Action<UserBalance> onLoad, Action onError) => StartCoroutine(SendGetRequest($"api/v1/General/balance", onLoad, onError));
+    public void GetAvatar(long userId, Action<Texture2D> onLoad) => StartCoroutine(LoadAvatarFromServer(userId, onLoad));
     //public void SendLobbyGameResult(string lobbyId, int score, string messageId, Action onLoad)
     //{
     //    var body = new GameResult

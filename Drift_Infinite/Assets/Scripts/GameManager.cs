@@ -8,22 +8,26 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
+    [Header("Buttons")]
     [SerializeField] private Button startButton;
     [SerializeField] private GameObject CancelGameButton;
+
+    [Header("Texts")]
     [SerializeField] private TextMeshProUGUI startButtonText;
     [SerializeField] private TextMeshProUGUI PlayersCountText;
+    [SerializeField] private TextMeshProUGUI waitingStatusText;
     [SerializeField] private TextMeshProUGUI timerText;
+    
+    [Header("Tables")]
     [SerializeField] private RaitingController raitingController;
     [SerializeField] private ConnectionsViewController connectionsViewController;
-    [SerializeField] private LevelManager LevelManager;
-    private float lobbyLifeTineInSeconds = 1800f;
-
-    [Header("RaitingTable")]
     [SerializeField] private Image lobbyTopButtonImage;
     [SerializeField] private Image gameTopButtonImage;
 
     [Header("Other")]
     [SerializeField] UserProfile userProfile;
+    [SerializeField] private LevelManager LevelManager;
+    private float lobbyLifeTineInSeconds = 1800f;
 
     public static GameManager Instance;
 
@@ -78,9 +82,11 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        
         InitializeLobbyInfo();
-        InitializeGameInfo();
         GetUserBalance();
+        GetPhoto();
+        InitializeGameInfo();
         startButton.SetActive(false);
     }
 
@@ -93,11 +99,6 @@ public class GameManager : MonoBehaviour
         MultiplayerController.OnQueueCompleted -= QueueCompletedHandler;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 
     public void StartGame() => MultiplayerController.startGame(LobbyId);
 
@@ -127,6 +128,7 @@ public class GameManager : MonoBehaviour
 
     public void InitializeGameInfo()
     {
+        
         AllGamesServer.Instance.GetTopPlayersInfo(gameName, top =>
         {
             topPlayers = top.players;
@@ -145,6 +147,22 @@ public class GameManager : MonoBehaviour
         () =>
         {
             Debug.Log("Не удалось получить информацию о наградах");
+        });
+   
+    }
+
+    private void GetPhoto()
+    {
+        SelfId = AllGamesServer.Instance.startData.userId;
+        var id =
+#if UNITY_EDITOR
+972291849;
+#else
+       SelfId;
+#endif
+        AllGamesServer.Instance.GetAvatar(id, (avatar) =>
+        {
+            userProfile.SetAvatar(avatar);
         });
     }
 
@@ -208,7 +226,6 @@ public class GameManager : MonoBehaviour
         if (selfInfo.isLobbyAdmin)
             startButton.SetActive(true);
 
-        SelfId = AllGamesServer.Instance.startData.userId;
         var drifterInfo = new DrifterInfo { userId = SelfId, userName = selfInfo.userName, carColor = LevelManager.SelectedCarColor };
         AddConnection(drifterInfo);
     }
@@ -217,7 +234,7 @@ public class GameManager : MonoBehaviour
     {
         if (connections.FirstOrDefault(c => c.userId == drifterInfo.userId) != null) return;
         connections.Add(drifterInfo);
-        connectionsViewController.AddPlayer(drifterInfo);
+        connectionsViewController.AddPlayer(drifterInfo, true);
         PlayersCountText.text = $"Joined players {connections.Count}/{MaxPlayersCount}";
     }
 
@@ -230,7 +247,11 @@ public class GameManager : MonoBehaviour
         PlayersCountText.text = $"Joined players {connections.Count}/{MaxPlayersCount}";
     }
 
-    private void SessionFullHandler() => PlayersCountText.text = "Game has already started! Awaiting the next round...";
+    private void SessionFullHandler()
+    {
+        PlayersCountText.text = "Game has already started! Awaiting the next round...";
+        waitingStatusText.SetActive(false);
+    }
 
     private void QueueCompletedHandler()
     {
@@ -254,18 +275,17 @@ public class GameManager : MonoBehaviour
     {
         MultiplayerController.leaveLobby(LobbyId);
 
-        if (alreaddyInGame)
-        {
-            LevelManager.StopQueue();
-            startButton.SetActive(false);
-        }
+        if (alreaddyInGame) LevelManager.StopQueue();
 
+        startButton.SetActive(false);
         var connection = connections.FirstOrDefault(c => c.userId == SelfId);
         if (connection == null) return;
 
         connections.Remove(connection);
         connectionsViewController.RemovePlayer(SelfId);
+
         CancelGameButton.SetActive(false);
+        waitingStatusText.SetActive(false);
         PlayersCountText.text = $"You are disconnected";
     }
 
